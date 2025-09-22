@@ -263,197 +263,57 @@ def activities():
 
 @app.route('/analytics')
 def analytics():
-    """Enhanced analytics and visualizations page."""
+    """Simple feeding analytics page."""
     try:
-        # Load profile and activities into cache (like original working version)
+        logger.info("Simple analytics route accessed")
+
+        # Load profile if not already loaded
         if not journal.profile:
             journal.load_profile()
 
-        if journal.profile:
-            journal.load_activities()  # Populate journal.activities cache
+        if not journal.profile:
+            logger.error("No profile found for analytics")
+            return render_template('analytics_simple.html', error="Please create a baby profile first.")
 
-        # Get statistics
-        stats = journal.get_statistics()
-        logger.info(f"Analytics - Statistics returned: {stats}")
-        logger.info(f"Analytics - Journal has {len(journal.activities)} activities loaded")
-        logger.info(f"Analytics - Profile exists: {journal.profile is not None}")
+        logger.info(f"Profile loaded: {journal.profile.name}")
 
-        # Prepare data for charts (restored to original simple approach)
-        if journal.activities:
-            # Activities by hour of day
-            hour_distribution = [0] * 24
-            for activity in journal.activities:
-                hour = activity.timestamp.hour
-                hour_distribution[hour] += 1
+        # Get feeding activities directly from database
+        from app.database import get_db_service
+        db = get_db_service()
 
-            # Activities by day of week
-            weekday_distribution = [0] * 7
-            for activity in journal.activities:
-                weekday = activity.timestamp.weekday()
-                weekday_distribution[weekday] += 1
+        # Query feeding activities directly
+        feeding_rows = db.get_activities(journal.profile.id, category='feeding')
+        logger.info(f"Found {len(feeding_rows)} feeding activities in database")
 
-            # Recent 7 days trend
-            today = datetime.now().date()
-            daily_counts = []
-            for i in range(6, -1, -1):
-                date = today - timedelta(days=i)
-                count = len([a for a in journal.activities if a.timestamp.date() == date])
-                daily_counts.append({
-                    'date': date.strftime('%m/%d'),
-                    'count': count
-                })
+        if not feeding_rows:
+            return render_template('analytics_simple.html', error="No feeding activities found. Add some feeding activities first.")
 
-            # Calculate feeding insights (with safe property access)
-            feeding_activities = []
-            for a in journal.activities:
-                try:
-                    if hasattr(a, 'category') and a.category and a.category.value == 'feeding':
-                        feeding_activities.append(a)
-                except Exception as e:
-                    logger.warning(f"Skipping activity due to category access error: {e}")
-                    continue
-            feeding_insights = {
-            'avg_amount': 0,
-            'avg_gap_hours': 0,
-            'bottle_percentage': 0,
-            'daily_trend': [],
-            'daily_avg_total': 0,
-            'weekly_avg_total': 0
-            }
-
-            if feeding_activities:
-                # Average amount
-                amounts = [a.amount for a in feeding_activities if a.amount]
-                if amounts:
-                    feeding_insights['avg_amount'] = round(sum(amounts) / len(amounts), 1)
-
-                # Calculate daily feeding trend for last 7 days
-                for i in range(6, -1, -1):
-                    date = today - timedelta(days=i)
-                    day_feedings = [a for a in feeding_activities if a.timestamp.date() == date]
-                    daily_amounts = [a.amount for a in day_feedings if a.amount]
-                    total_amount = sum(daily_amounts) if daily_amounts else 0
-                    feeding_insights['daily_trend'].append({
-                        'date': date.strftime('%a'),
-                        'amount': round(total_amount, 1),
-                        'count': len(day_feedings)
-                    })
-
-                # Bottle percentage (with safe access)
-                bottle_feeds = 0
-                for a in feeding_activities:
-                    try:
-                        if hasattr(a, 'activity_type') and a.activity_type and 'bottle' in a.activity_type.value:
-                            bottle_feeds += 1
-                    except Exception:
-                        continue
-                feeding_insights['bottle_percentage'] = round((bottle_feeds / len(feeding_activities)) * 100, 1)
-
-                # Daily and weekly average totals
-                daily_totals = []
-                for i in range(7):  # Last 7 days
-                    date = today - timedelta(days=i)
-                    day_feedings = [a for a in feeding_activities if a.timestamp.date() == date]
-                    daily_amounts = [a.amount for a in day_feedings if a.amount]
-                    daily_total = sum(daily_amounts) if daily_amounts else 0
-                    if daily_total > 0:  # Only count days with feeding data
-                        daily_totals.append(daily_total)
-
-                if daily_totals:
-                    feeding_insights['daily_avg_total'] = round(sum(daily_totals) / len(daily_totals), 1)
-                    feeding_insights['weekly_avg_total'] = round(sum(daily_totals), 1)
-
-                # Calculate average gap between feedings
-                if len(feeding_activities) > 1:
-                    sorted_feeds = sorted(feeding_activities, key=lambda x: x.timestamp)
-                    gaps = []
-                    for i in range(1, len(sorted_feeds)):
-                        gap_hours = (sorted_feeds[i].timestamp - sorted_feeds[i-1].timestamp).total_seconds() / 3600
-                        gaps.append(gap_hours)
-                    if gaps:
-                        feeding_insights['avg_gap_hours'] = round(sum(gaps) / len(gaps), 1)
-
-            # Calculate sleep insights (with safe property access)
-            sleep_activities = []
-            for a in journal.activities:
-                try:
-                    if hasattr(a, 'category') and a.category and a.category.value == 'sleep':
-                        sleep_activities.append(a)
-                except Exception as e:
-                    logger.warning(f"Skipping activity due to category access error: {e}")
-                    continue
-            sleep_insights = {
-            'total_daily_sleep': 0,
-            'night_sleep_avg': 0,
-            'nap_count': 0,
-            'sleep_efficiency': 0,
-            'sleep_pattern': [],
-            'day_sleep_avg': 0,
-            'daily_trend': []
-            }
-
-            if sleep_activities:
-                # Calculate average daily sleep
-                durations = [a.duration_minutes for a in sleep_activities if a.duration_minutes]
-                if durations:
-                    total_minutes = sum(durations)
-                    sleep_insights['total_daily_sleep'] = round(total_minutes / 60, 1)
-
-                    # Sleep pattern by type
-                    night_sleeps = [a for a in sleep_activities if 'night' in a.activity_type.value.lower()]
-                    naps = [a for a in sleep_activities if 'nap' in a.activity_type.value.lower()]
-
-                    if night_sleeps:
-                        night_durations = [a.duration_minutes for a in night_sleeps if a.duration_minutes]
-                        if night_durations:
-                            sleep_insights['night_sleep_avg'] = round(sum(night_durations) / len(night_durations) / 60, 1)
-
-                    sleep_insights['nap_count'] = len(naps)
-                    sleep_insights['sleep_efficiency'] = min(95, round((total_minutes / (24 * 60)) * 100 * 2, 1))  # Rough calculation
-
-                    # Calculate day sleep (6 AM to 9 PM)
-                    day_sleep_minutes = 0
-                    for activity in sleep_activities:
-                        if activity.duration_minutes and 6 <= activity.timestamp.hour <= 21:
-                            day_sleep_minutes += activity.duration_minutes
-
-                    sleep_insights['day_sleep_avg'] = round(day_sleep_minutes / 60, 1)
-
-            # Generate dynamic insights if insights generator is available
+        # Process feeding data for chart
+        feeding_data = []
+        for row in feeding_rows:
             try:
-                insights_generator = InsightsGenerator(journal.activities)
-                feeding_dynamic_insights = insights_generator.generate_feeding_insights()
-                sleep_dynamic_insights = insights_generator.generate_sleep_insights()
+                feeding_data.append({
+                    'date': row['timestamp'].strftime('%Y-%m-%d'),
+                    'time': row['timestamp'].strftime('%H:%M'),
+                    'amount': row['amount'] or 0,
+                    'description': row['description']
+                })
             except Exception as e:
-                logger.warning(f"Could not generate dynamic insights: {e}")
-                feeding_dynamic_insights = []
-                sleep_dynamic_insights = []
+                logger.warning(f"Error processing feeding row: {e}")
+                continue
 
-            chart_data = {
-                'hourly': hour_distribution,
-                'weekday': weekday_distribution,
-                'daily_trend': daily_counts,
-                'feeding_insights': feeding_insights,
-                'sleep_insights': sleep_insights,
-                'feeding_dynamic_insights': feeding_dynamic_insights,
-                'sleep_dynamic_insights': sleep_dynamic_insights
-            }
-        else:
-            chart_data = None
+        # Sort by timestamp
+        feeding_data.sort(key=lambda x: x['date'] + ' ' + x['time'])
 
-        return render_template('analytics_enhanced.html',
-                             statistics=stats,
-                             chart_data=chart_data)
+        logger.info(f"Processed {len(feeding_data)} feeding records for chart")
+
+        return render_template('analytics_simple.html', feeding_data=feeding_data)
 
     except Exception as e:
-        logger.error(f"Error in analytics route: {e}")
+        logger.error(f"Error in simple analytics: {e}")
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
-
-        # Return safe fallback
-        return render_template('analytics_enhanced.html',
-                             statistics={},
-                             chart_data=None)
+        return render_template('analytics_simple.html', error=f"Error loading analytics: {str(e)}")
 
 
 @app.route('/debug')
