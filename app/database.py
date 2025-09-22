@@ -106,6 +106,39 @@ class DatabaseConnection:
             if conn:
                 self.return_connection(conn)
 
+    def execute_insert_returning(self, query: str, params: tuple = None) -> Optional[str]:
+        """Execute an INSERT query with RETURNING clause and return the single value."""
+        conn = None
+        try:
+            logger.info(f"Executing INSERT with RETURNING: {query[:100]}... with params: {params}")
+            conn = self.get_connection()
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(query, params)
+                result = cursor.fetchone()
+                conn.commit()
+
+                if result:
+                    # Extract the ID from the result
+                    result_dict = dict(result)
+                    logger.info(f"INSERT successful, returned: {result_dict}")
+                    return str(result_dict['id'])
+                else:
+                    logger.error("INSERT returned no result")
+                    return None
+
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            logger.error(f"Database INSERT error: {e}")
+            logger.error(f"Query: {query}")
+            logger.error(f"Params: {params}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise
+        finally:
+            if conn:
+                self.return_connection(conn)
+
     def close_pool(self):
         """Close all connections in the pool."""
         if self.connection_pool:
@@ -189,8 +222,10 @@ class DatabaseService:
         RETURNING id;
         """
         params = (name, birth_date, gender, birth_weight, birth_height)
-        result = self.db.execute_query(query, params)
-        return str(result[0]['id']) if result else None
+
+        # Use a special method for INSERT with RETURNING
+        result = self.db.execute_insert_returning(query, params)
+        return str(result) if result else None
 
     def get_profile(self, profile_id: str = None) -> Optional[Dict]:
         """Get baby profile by ID, or the first profile if no ID provided."""
@@ -250,8 +285,8 @@ class DatabaseService:
         params = (profile_id, timestamp, category, activity_type, description, amount,
                  unit, duration_minutes, notes, tags, source, sender)
 
-        result = self.db.execute_query(query, params)
-        return str(result[0]['id']) if result else None
+        result = self.db.execute_insert_returning(query, params)
+        return str(result) if result else None
 
     def get_activities(self, profile_id: str, limit: int = None,
                       category: str = None, date: datetime = None) -> List[Dict]:

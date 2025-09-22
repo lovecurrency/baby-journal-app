@@ -541,12 +541,39 @@ def health_check():
         profile_count = db.db.execute_query("SELECT COUNT(*) as count FROM baby_profiles;")
         activity_count = db.db.execute_query("SELECT COUNT(*) as count FROM baby_activities;")
 
+        # Check table structure
+        profile_columns = db.db.execute_query("""
+            SELECT column_name, data_type, is_nullable
+            FROM information_schema.columns
+            WHERE table_name = 'baby_profiles'
+            ORDER BY ordinal_position;
+        """)
+
+        activity_columns = db.db.execute_query("""
+            SELECT column_name, data_type, is_nullable
+            FROM information_schema.columns
+            WHERE table_name = 'baby_activities'
+            ORDER BY ordinal_position;
+        """)
+
+        # Test a simple insert to validate the mechanism
+        try:
+            test_insert_result = db.db.execute_insert_returning(
+                "SELECT gen_random_uuid() as id;", ()
+            )
+            insert_test = f"UUID generation works: {test_insert_result}"
+        except Exception as e:
+            insert_test = f"UUID generation failed: {str(e)}"
+
         return jsonify({
             'status': 'healthy',
             'database': 'connected',
             'tables': tables,
             'profiles_count': profile_count[0]['count'] if profile_count else 0,
             'activities_count': activity_count[0]['count'] if activity_count else 0,
+            'profile_columns': profile_columns,
+            'activity_columns': activity_columns,
+            'insert_test': insert_test,
             'test_query': test_result[0] if test_result else None,
             'timestamp': datetime.now().isoformat()
         })
