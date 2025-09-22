@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Upload WhatsApp Chat - Baby Activity Journal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h3 class="text-center mb-4">
+            <i class="bi bi-whatsapp"></i> Import WhatsApp Chat
+        </h3>
+
+        <div class="alert alert-info">
+            <h5><i class="bi bi-info-circle"></i> How to export WhatsApp chat:</h5>
+            <ol class="mb-0">
+                <li>Open WhatsApp and go to the chat you want to export</li>
+                <li>Tap on the contact name or group name at the top</li>
+                <li>Scroll down and tap "Export Chat"</li>
+                <li>Choose "Without Media" (text only)</li>
+                <li>Save the .txt file to your device</li>
+                <li>Upload the file below</li>
+            </ol>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_whatsapp') }}">
+            <div class="mb-3">
+                <label for="file" class="form-label">Select WhatsApp Export File (.txt)</label>
+                <input type="file" class="form-control" id="file" name="file" accept=".txt" required>
+                <div class="form-text">Maximum file size: 16MB</div>
+            </div>
+
+            <div class="alert alert-warning">
+                <h6><i class="bi bi-lightbulb"></i> Tips for better parsing:</h6>
+                <ul class="mb-0">
+                    <li>Include keywords like "fed", "diaper", "sleep", "nap", etc.</li>
+                    <li>Include amounts when relevant (e.g., "fed 150ml", "slept 2 hours")</li>
+                    <li>Use consistent formatting in your messages</li>
+                </ul>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-custom">
+                    <i class="bi bi-upload"></i> Upload and Process
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Home
+                </a>
+            </div>
+        </form>
+
+        <div class="mt-4">
+            <h5>Example Messages that will be recognized:</h5>
+            <div class="list-group">
+                <div class="list-group-item">
+                    <code>[12/25/2023, 10:30] Mom: Baby fed 150ml formula</code>
+                    <small class="text-muted d-block">→ Feeding activity with amount</small>
+                </div>
+                <div class="list-group-item">
+                    <code>[12/25/2023, 14:15] Dad: Changed dirty diaper</code>
+                    <small class="text-muted d-block">→ Diaper change activity</small>
+                </div>
+                <div class="list-group-item">
+                    <code>[12/25/2023, 15:00] Mom: Baby napped for 2 hours</code>
+                    <small class="text-muted d-block">→ Sleep activity with duration</small>
+                </div>
+                <div class="list-group-item">
+                    <code>[12/25/2023, 18:30] Grandma: Baby rolled over for the first time!</code>
+                    <small class="text-muted d-block">→ Milestone activity</small>
+                </div>
+                <div class="list-group-item">
+                    <code>[12/25/2023, 20:00] Dad: Temperature 98.6F, all normal</code>
+                    <small class="text-muted d-block">→ Health/temperature activity</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

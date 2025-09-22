@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Baby Journal Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#56abfb",
+              "background-light": "#f5f7f8",
+              "background-dark": "#0f1923",
+              "text-light": "#111827",
+              "text-dark": "#e5e7eb",
+              "border-light": "#e5e7eb",
+              "border-dark": "#374151",
+              "muted-light": "#6b7280",
+              "muted-dark": "#9ca3af",
+            },
+            fontFamily: {
+              display: ["Inter"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+      }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
+<div class="flex min-h-screen flex-col">
+<header class="border-b border-border-light dark:border-border-dark bg-white/80 dark:bg-background-dark/80 backdrop-blur-sm sticky top-0 z-10">
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+<div class="flex h-16 items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-3xl">
+                child_care
+              </span>
+<h1 class="text-xl font-bold">Baby Journal</h1>
+</div>
+<nav class="hidden md:flex items-center gap-6 text-sm font-medium">
+<a class="text-muted-light dark:text-muted-dark hover:text-primary dark:hover:text-primary transition-colors" href="#">Feed</a>
+<a class="text-muted-light dark:text-muted-dark hover:text-primary dark:hover:text-primary transition-colors" href="#">Sleep</a>
+<a class="text-muted-light dark:text-muted-dark hover:text-primary dark:hover:text-primary transition-colors" href="#">Diaper</a>
+<a class="text-muted-light dark:text-muted-dark hover:text-primary dark:hover:text-primary transition-colors" href="#">Growth</a>
+<a class="text-muted-light dark:text-muted-dark hover:text-primary dark:hover:text-primary transition-colors" href="#">Milestones</a>
+<a aria-current="page" class="text-primary font-semibold" href="#">Analytics</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="rounded-full p-2 hover:bg-primary/10 dark:hover:bg-primary/20 text-muted-light dark:text-muted-dark hover:text-primary dark:hover:text-primary transition-colors">
+<span class="material-symbols-outlined"> notifications </span>
+</button>
+<div class="h-10 w-10 rounded-full bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAKOEqnS_fWBSBnui2HSewzKJ9Na0syJ41Sd22_Rtr_clf8nA6fWxXZ-zdTpqUqYLyHRKSRWlZ3IAzzlQlqh2-cOZvVT6GpkRy3JOTzbsJjHNRNeA8LX--6P26fljTOPTW5smXFYvvreYE_UKTtHvBFdaQyiQoPZesbwrc7lTGqgAGAxSQfVRiW0jO1iQ_52rXO_bsQItkDAWhGI7eWnGt2njkf8eb4J_Mhl9aMPkgEDZMZ3DTQC2X75B5iL7yH7hX7uw-rZH9Xark");'></div>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1">
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+<div class="mb-8">
+<h2 class="text-3xl font-bold tracking-tight">Analytics</h2>
+<p class="text-muted-light dark:text-muted-dark mt-1">
+              Track your baby's daily activities and patterns
+            </p>
+</div>
+<div class="mb-8 flex justify-center">
+<div class="flex w-full max-w-md items-center justify-center rounded-lg bg-white/50 dark:bg-background-dark/50 p-1 shadow-inner">
+<label class="flex h-full flex-1 cursor-pointer items-center justify-center rounded-md px-2 py-1.5 text-sm font-medium transition-all has-[:checked]:bg-white dark:has-[:checked]:bg-primary has-[:checked]:shadow-sm has-[:checked]:text-text-light dark:has-[:checked]:text-white text-muted-light dark:text-muted-dark">
+<span class="truncate">Daily</span>
+<input checked="" class="sr-only" name="analytics-view" type="radio" value="Daily"/>
+</label>
+<label class="flex h-full flex-1 cursor-pointer items-center justify-center rounded-md px-2 py-1.5 text-sm font-medium transition-all has-[:checked]:bg-white dark:has-[:checked]:bg-primary has-[:checked]:shadow-sm has-[:checked]:text-text-light dark:has-[:checked]:text-white text-muted-light dark:text-muted-dark">
+<span class="truncate">Weekly</span>
+<input class="sr-only" name="analytics-view" type="radio" value="Weekly"/>
+</label>
+<label class="flex h-full flex-1 cursor-pointer items-center justify-center rounded-md px-2 py-1.5 text-sm font-medium transition-all has-[:checked]:bg-white dark:has-[:checked]:bg-primary has-[:checked]:shadow-sm has-[:checked]:text-text-light dark:has-[:checked]:text-white text-muted-light dark:text-muted-dark">
+<span class="truncate">Monthly</span>
+<input class="sr-only" name="analytics-view" type="radio" value="Monthly"/>
+</label>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+<div class="rounded-lg bg-white/50 dark:bg-background-dark/50 p-6 shadow-sm border border-border-light dark:border-border-dark">
+<p class="text-sm font-medium text-muted-light dark:text-muted-dark">
+                Total Feeds
+              </p>
+<p class="mt-2 text-3xl font-bold">8</p>
+</div>
+<div class="rounded-lg bg-white/50 dark:bg-background-dark/50 p-6 shadow-sm border border-border-light dark:border-border-dark">
+<p class="text-sm font-medium text-muted-light dark:text-muted-dark">
+                Total Sleep Hours
+              </p>
+<p class="mt-2 text-3xl font-bold">14h 30m</p>
+</div>
+<div class="rounded-lg bg-white/50 dark:bg-background-dark/50 p-6 shadow-sm border border-border-light dark:border-border-dark">
+<p class="text-sm font-medium text-muted-light dark:text-muted-dark">
+                Total Diaper Changes
+              </p>
+<p class="mt-2 text-3xl font-bold">10</p>
+</div>
+</div>
+<div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+<div class="rounded-lg bg-white/50 dark:bg-background-dark/50 p-6 shadow-sm border border-border-light dark:border-border-dark">
+<h3 class="text-lg font-medium">Activity Breakdown</h3>
+<div class="mt-4 flex items-center justify-center">
+<div class="relative h-48 w-48">
+<svg class="h-full w-full" viewBox="0 0 36 36">
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#f59e0b" stroke-dasharray="40, 60" stroke-width="3"></path>
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-dasharray="35, 65" stroke-dashoffset="-40" stroke-width="3"></path>
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#56abfb" stroke-dasharray="25, 75" stroke-dashoffset="-75" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl font-bold">28</span>
+<span class="text-sm text-muted-light dark:text-muted-dark">Total Activities</span>
+</div>
+</div>
+</div>
+<div class="mt-6 space-y-3 text-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="h-3 w-3 rounded-full bg-[#f59e0b]"></span>
+<span>Feeds</span>
+</div>
+<span>40%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="h-3 w-3 rounded-full bg-[#10b981]"></span>
+<span>Sleep</span>
+</div>
+<span>35%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="h-3 w-3 rounded-full bg-primary"></span>
+<span>Diapers</span>
+</div>
+<span>25%</span>
+</div>
+</div>
+</div>
+<div class="rounded-lg bg-white/50 dark:bg-background-dark/50 p-6 shadow-sm border border-border-light dark:border-border-dark">
+<h3 class="text-lg font-medium">Daily Sleep Trends</h3>
+<div class="mt-4 h-64">
+<svg fill="none" height="100%" preserveAspectRatio="none" viewBox="0 0 500 250" width="100%" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 181.667C27.6667 181.667 27.6667 35 55.3333 35C83 35 83 68.3333 110.667 68.3333C138.333 68.3333 138.333 155 166 155C193.667 155 193.667 55 221.333 55C249 55 249 168.333 276.667 168.333C304.333 168.333 304.333 101.667 332 101.667C359.667 101.667 359.667 75 387.333 75C415 75 415 201.667 442.667 201.667C470.333 201.667 470.333 248.333 498 248.333V250H0V181.667Z" fill="url(#paint0_linear_sleep)"></path>
+<path d="M0 181.667C27.6667 181.667 27.6667 35 55.3333 35C83 35 83 68.3333 110.667 68.3333C138.333 68.3333 138.333 155 166 155C193.667 155 193.667 55 221.333 55C249 55 249 168.333 276.667 168.333C304.333 168.333 304.333 101.667 332 101.667C359.667 101.667 359.667 75 387.333 75C415 75 415 201.667 442.667 201.667C470.333 201.667 470.333 248.333 498 248.333" stroke="url(#paint1_linear_sleep)" stroke-linecap="round" stroke-width="4"></path>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_sleep" x1="249" x2="249" y1="35" y2="250">
+<stop stop-color="#56abfb" stop-opacity="0.2"></stop>
+<stop offset="1" stop-color="#56abfb" stop-opacity="0"></stop>
+</linearGradient>
+<linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_sleep" x1="0" x2="498" y1="141.667" y2="141.667">
+<stop stop-color="#56abfb"></stop>
+<stop offset="1" stop-color="#10b981"></stop>
+</linearGradient>
+</defs>
+</svg>
+</div>
+<div class="mt-2 flex justify-between text-xs text-muted-light dark:text-muted-dark">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+<div class="rounded-lg bg-white/50 dark:bg-background-dark/50 p-6 shadow-sm border border-border-light dark:border-border-dark lg:col-span-2">
+<h3 class="text-lg font-medium">Hourly Patterns</h3>
+<div class="mt-4 grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
+<div>
+<p class="text-sm font-medium text-muted-light dark:text-muted-dark mb-2">Feed</p>
+<div class="grid h-24 grid-flow-col items-end justify-items-center gap-2">
+<div class="w-full rounded bg-primary/20" style="height: 100%;"></div>
+<div class="w-full rounded bg-primary/20" style="height: 30%;"></div>
+<div class="w-full rounded bg-primary/20" style="height: 90%;"></div>
+<div class="w-full rounded bg-primary/20" style="height: 10%;"></div>
+<div class="w-full rounded bg-primary/20" style="height: 0%;"></div>
+<div class="w-full rounded bg-primary" style="height: 100%;"></div>
+<div class="w-full rounded bg-primary/20" style="height: 40%;"></div>
+<div class="w-full rounded bg-primary/20" style="height: 60%;"></div>
+</div>
+</div>
+<div>
+<p class="text-sm font-medium text-muted-light dark:text-muted-dark mb-2">Diaper Change</p>
+<div class="grid h-24 grid-flow-col items-end justify-items-center gap-2">
+<div class="w-full rounded bg-primary/20" style="height: 60%;"></div>
+<div class="w-full rounded bg-primary/20" style="height: 50%;"></div>
+<div class="w-full rounded bg-primary/20" style="height: 70%;"></div>
+<div class="w-full rounded bg-primary" style="height: 80%;"></div>
+<div class="w-full rounded bg-primary/20" style="height: 70%;"></div>
+<div class="w-full rounded bg-primary/20" style="height: 60%;"></div>
+<div class="w-full rounded bg-primary" style="height: 90%;"></div>
+<div class="w-full rounded bg-primary/20" style="height: 40%;"></div>
+</div>
+</div>
+</div>
+<div class="mt-2 grid grid-cols-4 gap-2 text-xs text-muted-light dark:text-muted-dark text-center">
+<span>12AM</span>
+<span>6AM</span>
+<span>12PM</span>
+<span>6PM</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>

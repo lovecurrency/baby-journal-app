@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Baby Activity Journal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#56abfb",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                        "feeding": "#74b9ff",
+                        "diaper": "#a29bfe",
+                        "sleep": "#6c5ce7",
+                        "health": "#fd79a8",
+                        "milestones": "#fdcb6e",
+                        "measurements": "#00b894",
+                        "medicine": "#e17055",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .activity-card {
+            border-left-width: 4px;
+        }
+        .border-feeding { border-color: #74b9ff; }
+        .border-diaper { border-color: #a29bfe; }
+        .border-sleep { border-color: #6c5ce7; }
+        .border-health { border-color: #fd79a8; }
+        .border-milestones { border-color: #fdcb6e; }
+        .border-measurements { border-color: #00b894; }
+        .border-medicine { border-color: #e17055; }
+        .bg-feeding-light { background-color: #74b9ff1a; }
+        .bg-diaper-light { background-color: #a29bfe1a; }
+        .bg-sleep-light { background-color: #6c5ce71a; }
+        .bg-health-light { background-color: #fd79a81a; }
+        .bg-milestones-light { background-color: #fdcb6e1a; }
+        .bg-measurements-light { background-color: #00b8941a; }
+        .bg-medicine-light { background-color: #e170551a; }
+        .dark .bg-feeding-light { background-color: #74b9ff2a; }
+        .dark .bg-diaper-light { background-color: #a29bfe2a; }
+        .dark .bg-sleep-light { background-color: #6c5ce72a; }
+        .dark .bg-health-light { background-color: #fd79a82a; }
+        .dark .bg-milestones-light { background-color: #fdcb6e2a; }
+        .dark .bg-measurements-light { background-color: #00b8942a; }
+        .dark .bg-medicine-light { background-color: #e170552a; }
+        .text-feeding { color: #74b9ff; }
+        .text-diaper { color: #a29bfe; }
+        .text-sleep { color: #6c5ce7; }
+        .text-health { color: #fd79a8; }
+        .text-milestones { color: #fdcb6e; }
+        .text-measurements { color: #00b894; }
+        .text-medicine { color: #e17055; }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200">
+<div class="flex flex-col min-h-screen">
+<header class="sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm z-10 border-b border-gray-200 dark:border-gray-700">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16">
+<div class="flex items-center space-x-8">
+<a class="flex items-center space-x-2" href="#">
+<span class="material-symbols-outlined text-primary text-3xl">child_care</span>
+<span class="text-xl font-bold">BabyJournal</span>
+</a>
+<nav class="hidden md:flex items-center space-x-6">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Insights</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Community</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Settings</a>
+</nav>
+</div>
+<div class="flex items-center space-x-4">
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+<input class="bg-gray-100 dark:bg-gray-800 border-none rounded-full pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search" type="text"/>
+</div>
+<img alt="User avatar" class="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7a3zTc1szsUJXQ95IeYPpBJOJ0wjEcZV5Efb-2lpcSvL5cD03NSr3ANKkPv3KAEremz8jroemQ4XiLO7baqjgnf03OrUzRuv4fRd-nHaASP5AcpYsCk0slclIrOu1R0u-FdVu-0oSeOSfLAefrkWdwf1fvtQOoDn-q0s1f5m1IMb2DPDW2H-ixsqI_AQL21-t6oqoN-wgdqc7wZxzoK-Pp495Pw9hqinoqg-n0_Dsp7Z-G5z9hauorsrEjABZgEavamk1ZLC6U-A"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-4xl mx-auto">
+<div class="mb-8">
+<h1 class="text-4xl font-bold mb-2">Activity Journal</h1>
+<p class="text-gray-500 dark:text-gray-400">Track your baby's daily activities and milestones.</p>
+</div>
+<div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="relative md:col-span-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+<input class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search activities..." type="text"/>
+</div>
+<div class="relative">
+<select class="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none">
+<option>Filter by Date</option>
+<option>Today</option>
+<option>Yesterday</option>
+<option>Last 7 days</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
+</div>
+<div class="relative">
+<select class="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none">
+<option>Filter by Category</option>
+<option>Feeding</option>
+<option>Diaper</option>
+<option>Sleep</option>
+<option>Health</option>
+<option>Milestones</option>
+<option>Measurements</option>
+<option>Medicine</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm activity-card border-feeding">
+<div class="p-4 flex items-center space-x-4">
+<div class="flex-shrink-0 bg-feeding-light dark:bg-feeding-light text-feeding p-3 rounded-full">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<div class="flex-grow grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+<div>
+<p class="text-sm font-medium text-gray-500 dark:text-gray-400">10:30 AM</p>
+<p class="font-semibold">Feeding</p>
+</div>
+<div class="col-span-2"><p class="text-sm">Bottle feeding, 150ml of formula.</p></div>
+<div class="text-right"><p class="text-sm font-medium">15 min</p></div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm activity-card border-diaper">
+<div class="p-4 flex items-center space-x-4">
+<div class="flex-shrink-0 bg-diaper-light dark:bg-diaper-light text-diaper p-3 rounded-full">
+<span class="material-symbols-outlined">baby_changing_station</span>
+</div>
+<div class="flex-grow grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+<div>
+<p class="text-sm font-medium text-gray-500 dark:text-gray-400">11:00 AM</p>
+<p class="font-semibold">Diaper</p>
+</div>
+<div class="col-span-2"><p class="text-sm">Wet diaper. Changed.</p></div>
+<div class="text-right"></div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm activity-card border-sleep">
+<div class="p-4 flex items-center space-x-4">
+<div class="flex-shrink-0 bg-sleep-light dark:bg-sleep-light text-sleep p-3 rounded-full">
+<span class="material-symbols-outlined">sleep</span>
+</div>
+<div class="flex-grow grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+<div>
+<p class="text-sm font-medium text-gray-500 dark:text-gray-400">12:00 PM</p>
+<p class="font-semibold">Sleep</p>
+</div>
+<div class="col-span-2"><p class="text-sm">Afternoon nap in the crib.</p></div>
+<div class="text-right"><p class="text-sm font-medium">1 hr 30 min</p></div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm activity-card border-health">
+<div class="p-4 flex items-center space-x-4">
+<div class="flex-shrink-0 bg-health-light dark:bg-health-light text-health p-3 rounded-full">
+<span class="material-symbols-outlined">health_and_safety</span>
+</div>
+<div class="flex-grow grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+<div>
+<p class="text-sm font-medium text-gray-500 dark:text-gray-400">2:00 PM</p>
+<p class="font-semibold">Health</p>
+</div>
+<div class="col-span-2"><p class="text-sm">Temperature check.</p></div>
+<div class="text-right"><p class="text-sm font-medium">36.8°C</p></div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm activity-card border-milestones">
+<div class="p-4 flex items-center space-x-4">
+<div class="flex-shrink-0 bg-milestones-light dark:bg-milestones-light text-milestones p-3 rounded-full">
+<span class="material-symbols-outlined">emoji_events</span>
+</div>
+<div class="flex-grow grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+<div>
+<p class="text-sm font-medium text-gray-500 dark:text-gray-400">3:00 PM</p>
+<p class="font-semibold">Milestone</p>
+</div>
+<div class="col-span-2"><p class="text-sm">First smile! So precious.</p></div>
+<div class="text-right"></div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm activity-card border-measurements">
+<div class="p-4 flex items-center space-x-4">
+<div class="flex-shrink-0 bg-measurements-light dark:bg-measurements-light text-measurements p-3 rounded-full">
+<span class="material-symbols-outlined">straighten</span>
+</div>
+<div class="flex-grow grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+<div>
+<p class="text-sm font-medium text-gray-500 dark:text-gray-400">4:00 PM</p>
+<p class="font-semibold">Measurement</p>
+</div>
+<div class="col-span-2"><p class="text-sm">Weight check.</p></div>
+<div class="text-right"><p class="text-sm font-medium">5.2 kg</p></div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm activity-card border-medicine">
+<div class="p-4 flex items-center space-x-4">
+<div class="flex-shrink-0 bg-medicine-light dark:bg-medicine-light text-medicine p-3 rounded-full">
+<span class="material-symbols-outlined">medication</span>
+</div>
+<div class="flex-grow grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+<div>
+<p class="text-sm font-medium text-gray-500 dark:text-gray-400">5:00 PM</p>
+<p class="font-semibold">Medicine</p>
+</div>
+<div class="col-span-2"><p class="text-sm">Vitamin D drops.</p></div>
+<div class="text-right"><p class="text-sm font-medium">2 drops</p></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>

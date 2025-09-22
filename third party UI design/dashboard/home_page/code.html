@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Baby Journal</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: '#56abfb',
+              'background-light': '#f5f7f8',
+              'background-dark': '#0f1923',
+              'surface-light': '#ffffff',
+              'surface-dark': '#1a2836',
+              'text-light': '#0f1923',
+              'text-dark': '#e3e8ed',
+              'subtle-light': '#6b7f92',
+              'subtle-dark': '#a0b1c2',
+              'border-light': '#e3e8ed',
+              'border-dark': '#2e4053',
+            },
+            fontFamily: {
+              display: ['Inter', 'sans-serif'],
+            },
+            borderRadius: {
+              DEFAULT: '0.5rem',
+              lg: '0.75rem',
+              full: '9999px',
+            },
+          },
+        },
+      };
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+    </style>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+<div class="flex min-h-screen">
+<div class="flex flex-1 flex-col">
+<header class="flex h-20 items-center justify-between border-b border-border-light dark:border-border-dark px-6 lg:px-10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" style="font-size: 32px"> child_care </span>
+<h1 class="text-xl font-bold">Baby Journal</h1>
+</div>
+<nav class="hidden items-center gap-6 lg:flex">
+<a class="text-sm font-medium text-primary" href="#">Overview</a>
+<a class="text-sm font-medium text-subtle-light dark:text-subtle-dark hover:text-primary" href="#">Feedings</a>
+<a class="text-sm font-medium text-subtle-light dark:text-subtle-dark hover:text-primary" href="#">Diapers</a>
+<a class="text-sm font-medium text-subtle-light dark:text-subtle-dark hover:text-primary" href="#">Sleep</a>
+<a class="text-sm font-medium text-subtle-light dark:text-subtle-dark hover:text-primary" href="#">Growth</a>
+<a class="text-sm font-medium text-subtle-light dark:text-subtle-dark hover:text-primary" href="#">Milestones</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="relative rounded-full p-2 text-subtle-light dark:text-subtle-dark hover:bg-primary/10 dark:hover:bg-primary/20">
+<span class="material-symbols-outlined"> notifications </span>
+</button>
+<div class="h-10 w-10 rounded-full bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB76PiRefmfwM8i4gdOTU-61ypA7IwAbpVdORUBg7v4zEpUXRb0jVEHdCur6Hb9GjVoQvM7RM5F4BDu8tUNj1spGb1lMBu_sZ-KOWIJyIUyn2wLLOOUQoDbFYrrp_8UT0_XzRtYVEPllqnv4cOYRBj8Sp0HfEDR4idfmqO7P5BT_oIQCktIPmKHX-1xoHk3yfVOF5zyxJfBTND3R2clIGEyIkmFbaEqBiBdySdVEiHjL1PTVRT0VC76M_HOpbSxtH9abb4V2vFIfbs");'></div>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto p-6 lg:p-8">
+<div class="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-3">
+<div class="lg:col-span-2">
+<div class="flex flex-col items-start gap-6 rounded-lg bg-surface-light dark:bg-surface-dark p-6 sm:flex-row sm:items-center">
+<div class="h-32 w-32 flex-shrink-0 rounded-full bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDbLSzbja3Lp3MnmZKHmE9-DeqLlt3KG6wQG5ZqfXBJYAHuGj5b0lGQVFIIpsut1NgjmPXFmBbSleu7Wa_TsKC1t9FX5qy-WT53TnHqiO-dPCgolohYYKrTMqsvcYjoVB1JN_7OCKIXWDhrZbc2rD0Ldce-oYYVuzMBTPGVFMXa2guIJSwuErdlzWR6KFS2lo5HyeVZgJoVdi2ityuYeiLI1g1Gkmirj1JViZ-o8cCFvmlE2othteYhGk3rprxI5iDUx0u_QZh6wJ0");'></div>
+<div>
+<h2 class="text-3xl font-bold">Baby Amelia</h2>
+<p class="mt-1 text-subtle-light dark:text-subtle-dark">Age: 6 months</p>
+</div>
+</div>
+<section class="mt-8">
+<h3 class="text-xl font-bold">Daily Averages</h3>
+<div class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+<div class="rounded-lg bg-surface-light dark:bg-surface-dark p-4 text-center">
+<p class="text-sm font-medium text-subtle-light dark:text-subtle-dark">Feedings</p>
+<p class="text-3xl font-bold text-primary">6</p>
+</div>
+<div class="rounded-lg bg-surface-light dark:bg-surface-dark p-4 text-center">
+<p class="text-sm font-medium text-subtle-light dark:text-subtle-dark">Diaper Changes</p>
+<p class="text-3xl font-bold text-primary">8</p>
+</div>
+<div class="rounded-lg bg-surface-light dark:bg-surface-dark p-4 text-center">
+<p class="text-sm font-medium text-subtle-light dark:text-subtle-dark">Sleep</p>
+<p class="text-3xl font-bold text-primary">12h 30m</p>
+</div>
+<div class="rounded-lg bg-surface-light dark:bg-surface-dark p-4 text-center">
+<p class="text-sm font-medium text-subtle-light dark:text-subtle-dark">Awake</p>
+<p class="text-3xl font-bold text-primary">11h 30m</p>
+</div>
+</div>
+</section>
+<section class="mt-8">
+<h3 class="text-xl font-bold">Recent Activities</h3>
+<div class="mt-4 space-y-4">
+<div class="flex items-center gap-4 rounded-lg bg-surface-light dark:bg-surface-dark p-4">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined"> restaurant </span>
+</div>
+<div class="flex-1">
+<p class="font-medium">Feeding</p>
+<p class="text-sm text-subtle-light dark:text-subtle-dark">10:00 AM</p>
+</div>
+</div>
+<div class="flex items-center gap-4 rounded-lg bg-surface-light dark:bg-surface-dark p-4">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined"> baby_changing_station </span>
+</div>
+<div class="flex-1">
+<p class="font-medium">Diaper Change</p>
+<p class="text-sm text-subtle-light dark:text-subtle-dark">11:30 AM</p>
+</div>
+</div>
+<div class="flex items-center gap-4 rounded-lg bg-surface-light dark:bg-surface-dark p-4">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined"> dark_mode </span>
+</div>
+<div class="flex-1">
+<p class="font-medium">Sleep</p>
+<p class="text-sm text-subtle-light dark:text-subtle-dark">12:00 PM</p>
+</div>
+</div>
+<div class="flex items-center gap-4 rounded-lg bg-surface-light dark:bg-surface-dark p-4">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined"> light_mode </span>
+</div>
+<div class="flex-1">
+<p class="font-medium">Awake</p>
+<p class="text-sm text-subtle-light dark:text-subtle-dark">2:00 PM</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+<aside class="space-y-8">
+<section>
+<h3 class="text-xl font-bold">Quick Actions</h3>
+<div class="mt-4 space-y-3">
+<button class="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-primary/90">Add Feeding</button>
+<button class="w-full rounded-lg bg-primary/20 dark:bg-primary/30 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/30 dark:hover:bg-primary/40">Add Diaper Change</button>
+<button class="w-full rounded-lg bg-primary/20 dark:bg-primary/30 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/30 dark:hover:bg-primary/40">Add Sleep</button>
+<button class="w-full rounded-lg bg-primary/20 dark:bg-primary/30 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/30 dark:hover:bg-primary/40">Add Growth</button>
+</div>
+</section>
+<section>
+<h3 class="text-xl font-bold">Category Distribution</h3>
+<div class="mt-4 rounded-lg bg-surface-light dark:bg-surface-dark p-4">
+<div class="grid h-48 grid-cols-4 items-end gap-4 text-center">
+<div class="flex flex-col items-center justify-end gap-2">
+<div class="w-3/4 rounded-t-lg bg-primary/30" style="height: 30%"></div>
+<p class="text-xs font-medium text-subtle-light dark:text-subtle-dark">Feeding</p>
+</div>
+<div class="flex flex-col items-center justify-end gap-2">
+<div class="w-3/4 rounded-t-lg bg-primary/50" style="height: 80%"></div>
+<p class="text-xs font-medium text-subtle-light dark:text-subtle-dark">Diaper</p>
+</div>
+<div class="flex flex-col items-center justify-end gap-2">
+<div class="w-3/4 rounded-t-lg bg-primary/70" style="height: 70%"></div>
+<p class="text-xs font-medium text-subtle-light dark:text-subtle-dark">Sleep</p>
+</div>
+<div class="flex flex-col items-center justify-end gap-2">
+<div class="w-3/4 rounded-t-lg bg-primary" style="height: 40%"></div>
+<p class="text-xs font-medium text-subtle-light dark:text-subtle-dark">Awake</p>
+</div>
+</div>
+</div>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

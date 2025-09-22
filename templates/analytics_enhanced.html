@@ -1,0 +1,820 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Baby Activity Journal{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .metric-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        transition: transform 0.3s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .metric-card h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .metric-card .subtitle {
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+
+    .feeding-card {
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    }
+
+    .sleep-card {
+        background: linear-gradient(135deg, #6c5ce7 0%, #5f3dc4 100%);
+    }
+
+    .progress-card {
+        background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+    }
+
+    .diaper-card {
+        background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #f0f0f0;
+        overflow: hidden; /* Prevent content from extending beyond container */
+        max-height: none; /* Reset any height constraints */
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f8f9fa;
+    }
+
+    .chart-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #2d3436;
+        display: flex;
+        align-items: center;
+    }
+
+    .chart-title i {
+        margin-right: 10px;
+        font-size: 1.6rem;
+    }
+
+    .time-selector {
+        display: flex;
+        gap: 5px;
+    }
+
+    .time-btn {
+        padding: 8px 16px;
+        border: 2px solid #ddd;
+        background: white;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .time-btn.active {
+        background: #6c5ce7;
+        color: white;
+        border-color: #6c5ce7;
+    }
+
+    .feeding-insights {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .insight-item {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        border-left: 4px solid #74b9ff;
+    }
+
+    .insight-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2d3436;
+        margin-bottom: 5px;
+    }
+
+    .insight-label {
+        color: #636e72;
+        font-size: 0.9rem;
+    }
+
+    .sleep-pattern {
+        background: linear-gradient(to right, #ddd 0%, #6c5ce7 20%, #6c5ce7 80%, #ddd 100%);
+        height: 40px;
+        border-radius: 20px;
+        position: relative;
+        margin: 15px 0;
+    }
+
+    .sleep-time {
+        position: absolute;
+        top: -25px;
+        font-size: 0.8rem;
+        color: #636e72;
+    }
+
+    .progress-timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding: 20px 0;
+        border-left: 3px solid #ddd;
+        margin-left: 15px;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        top: 25px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #00b894;
+        border: 3px solid white;
+        box-shadow: 0 0 0 3px #00b894;
+    }
+
+    .timeline-content {
+        margin-left: 25px;
+    }
+
+    .milestone-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #fdcb6e, #e17055);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+
+
+    .alert-info-custom {
+        background: linear-gradient(135deg, #74b9ff20, #74b9ff10);
+        border: 1px solid #74b9ff;
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .growth-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        margin: 10px 0;
+    }
+
+    .growth-label {
+        font-weight: 600;
+        color: #2d3436;
+    }
+
+    .growth-trend {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+
+    .trend-up {
+        color: #00b894;
+    }
+
+    .trend-stable {
+        color: #fdcb6e;
+    }
+
+    /* Fix for canvas sizing issues */
+    canvas {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    /* Ensure chart containers have proper constraints */
+    .chart-container canvas {
+        max-height: 400px !important;
+    }
+
+    /* Dynamic insights styling */
+    .dynamic-insights {
+        margin-top: 20px;
+    }
+
+    .insight-card {
+        background: #f8f9fa;
+        border-left: 4px solid #6c5ce7;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 12px;
+        transition: transform 0.2s ease;
+    }
+
+    .insight-card:hover {
+        transform: translateX(3px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .insight-card.success {
+        border-left-color: #00b894;
+        background: linear-gradient(135deg, #00b894, #00a085);
+        color: white;
+    }
+
+    .insight-card.warning {
+        border-left-color: #fdcb6e;
+        background: linear-gradient(135deg, #fdcb6e, #e17055);
+        color: white;
+    }
+
+    .insight-card.info {
+        border-left-color: #74b9ff;
+        background: linear-gradient(135deg, #74b9ff, #0984e3);
+        color: white;
+    }
+
+    .insight-text {
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
+    }
+
+    .insight-icon {
+        margin-right: 10px;
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .insights-header {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2d3436;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+
+    .insights-header i {
+        margin-right: 8px;
+        color: #6c5ce7;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2><i class="bi bi-graph-up-arrow"></i> Comprehensive Baby Analytics</h2>
+    <p class="text-muted">Detailed insights into feeding, sleep patterns, and developmental progress</p>
+</div>
+
+{% if not statistics or statistics.total_activities == 0 %}
+<div class="alert alert-light text-center">
+    <i class="bi bi-bar-chart" style="font-size: 3rem; color: #ddd;"></i>
+    <h5 class="mt-3">No Data Available</h5>
+    <p>Add some activities to see comprehensive analytics and insights.</p>
+    <a href="{{ url_for('quick_add') }}" class="btn btn-custom">Add Activity</a>
+</div>
+{% else %}
+
+<!-- Key Metrics Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="metric-card feeding-card">
+            <h2>{{ statistics.daily_averages.feedings|default(0) }}</h2>
+            <p class="mb-1">Daily Feedings</p>
+            <small class="subtitle">{{ statistics.by_category.feeding|default(0) }} total this period</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card sleep-card">
+            <h2>{{ (statistics.daily_averages.sleep_sessions|default(0) * 8)|round(1) }}</h2>
+            <p class="mb-1">Avg Sleep (hrs)</p>
+            <small class="subtitle">{{ statistics.by_category.sleep|default(0) }} sleep sessions</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card diaper-card">
+            <h2>{{ statistics.daily_averages.diaper_changes|default(0) }}</h2>
+            <p class="mb-1">Daily Diapers</p>
+            <small class="subtitle">{{ statistics.by_category.diaper|default(0) }} changes total</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card progress-card">
+            <h2>{{ statistics.by_category.vaccine|default(0) }}</h2>
+            <p class="mb-1">Vaccines</p>
+            <small class="subtitle">{{ statistics.by_category.health|default(0) }} health records</small>
+        </div>
+    </div>
+</div>
+
+<!-- Feeding Analytics Section -->
+<div class="chart-container">
+    <div class="chart-header">
+        <h3 class="chart-title">
+            <i class="bi bi-cup-straw text-primary"></i>
+            Feeding Analytics & Insights
+        </h3>
+        <div class="time-selector">
+            <button class="time-btn active" onclick="updateFeedingView('week')">7 Days</button>
+            <button class="time-btn" onclick="updateFeedingView('month')">30 Days</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <canvas id="feedingTrendChart" height="300"></canvas>
+        </div>
+        <div class="col-md-4">
+            <h5><i class="bi bi-bar-chart"></i> Feeding Metrics</h5>
+            <div class="feeding-insights">
+                <div class="insight-item">
+                    <div class="insight-value">{{ chart_data.feeding_insights.avg_amount|default(0) }}ml</div>
+                    <div class="insight-label">Avg Amount</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">3.2hrs</div>
+                    <div class="insight-label">Avg Gap</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">{{ chart_data.feeding_insights.bottle_percentage|default(0) }}%</div>
+                    <div class="insight-label">Bottle Feeds</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">{{ statistics.by_category.feeding|default(0) }}</div>
+                    <div class="insight-label">Total Feeds</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">{{ chart_data.feeding_insights.daily_avg_total|default(0) }}ml</div>
+                    <div class="insight-label">Daily Avg Feed</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">{{ chart_data.feeding_insights.weekly_avg_total|default(0) }}ml</div>
+                    <div class="insight-label">Weekly Avg Feed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if chart_data and chart_data.feeding_dynamic_insights %}
+    <div class="dynamic-insights">
+        <div class="insights-header">
+            <i class="bi bi-lightbulb-fill"></i>
+            Smart Feeding Insights
+        </div>
+        {% for insight in chart_data.feeding_dynamic_insights %}
+        <div class="insight-card {{ insight.type }}">
+            <p class="insight-text">
+                <i class="bi bi-{{ insight.icon }} insight-icon"></i>
+                {{ insight.text }}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Sleep Analytics Section -->
+<div class="chart-container">
+    <div class="chart-header">
+        <h3 class="chart-title">
+            <i class="bi bi-moon-stars text-info"></i>
+            Sleep Pattern Analysis
+        </h3>
+        <div class="time-selector">
+            <button class="time-btn active" onclick="updateSleepView('week')">7 Days</button>
+            <button class="time-btn" onclick="updateSleepView('month')">30 Days</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Daily Sleep Pattern</h5>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="sleepPatternChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h5><i class="bi bi-bar-chart"></i> Sleep Metrics</h5>
+            <div class="feeding-insights mt-4">
+                <div class="insight-item">
+                    <div class="insight-value">{{ chart_data.sleep_insights.total_daily_sleep|default(0) }}hrs</div>
+                    <div class="insight-label">Avg Daily Sleep</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">{{ (chart_data.sleep_insights.nap_count|default(0) + 1)|round(0) }}</div>
+                    <div class="insight-label">Sleep Frequency</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">{{ chart_data.sleep_insights.night_sleep_avg|default(0) }}hrs</div>
+                    <div class="insight-label">Night Sleep (9PM-6AM)</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">{{ chart_data.sleep_insights.day_sleep_avg|default(0) }}hrs</div>
+                    <div class="insight-label">Day Sleep (6AM-9PM)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if chart_data and chart_data.sleep_dynamic_insights %}
+    <div class="dynamic-insights">
+        <div class="insights-header">
+            <i class="bi bi-moon-fill"></i>
+            Smart Sleep Insights
+        </div>
+        {% for insight in chart_data.sleep_dynamic_insights %}
+        <div class="insight-card {{ insight.type }}">
+            <p class="insight-text">
+                <i class="bi bi-{{ insight.icon }} insight-icon"></i>
+                {{ insight.text }}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Breast Milk Extraction Analytics -->
+<div class="chart-container">
+    <div class="chart-header">
+        <h3 class="chart-title">
+            <i class="bi bi-droplet text-info"></i>
+            Breast Milk Extraction
+        </h3>
+    </div>
+
+    {% if chart_data and chart_data.extraction_insights.daily_trend %}
+    <div class="row">
+        <div class="col-md-8">
+            <canvas id="extractionChart" height="300"></canvas>
+        </div>
+        <div class="col-md-4">
+            <h5><i class="bi bi-bar-chart"></i> Extraction Metrics</h5>
+            <div class="feeding-insights">
+                <div class="insight-item">
+                    <div class="insight-value">{{ chart_data.extraction_insights.daily_avg|default(0) }}ml</div>
+                    <div class="insight-label">Daily Avg</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">{{ chart_data.extraction_insights.weekly_avg|default(0) }}ml</div>
+                    <div class="insight-label">Weekly Total</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-light text-center">
+        <i class="bi bi-droplet" style="font-size: 2rem; color: #ddd;"></i>
+        <h6 class="mt-2">No Extraction Data</h6>
+        <p class="mb-0">Add breast milk extraction activities to see daily trends and averages.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Growth & Health Records -->
+<div class="chart-container">
+    <div class="chart-header">
+        <h3 class="chart-title">
+            <i class="bi bi-graph-up text-success"></i>
+            Growth & Health Records
+        </h3>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h5><i class="bi bi-person-check"></i> Birth Measurements</h5>
+            {% if profile and (profile.birth_weight or profile.birth_height) %}
+                {% if profile.birth_weight %}
+                <div class="growth-indicator">
+                    <span class="growth-label">Birth Weight</span>
+                    <span class="growth-trend trend-stable">
+                        {{ profile.birth_weight }}kg
+                    </span>
+                </div>
+                {% endif %}
+                {% if profile.birth_height %}
+                <div class="growth-indicator">
+                    <span class="growth-label">Birth Height</span>
+                    <span class="growth-trend trend-stable">
+                        {{ profile.birth_height }}cm
+                    </span>
+                </div>
+                {% endif %}
+                {% if profile.age_months %}
+                <div class="growth-indicator">
+                    <span class="growth-label">Current Age</span>
+                    <span class="growth-trend trend-up">
+                        {{ profile.age_months }} months ({{ profile.age_days }} days)
+                    </span>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-light">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Add birth measurements</strong><br>
+                    Go to <a href="{{ url_for('setup') }}" class="alert-link">Profile Setup</a> to add birth weight and height for growth tracking.
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <h5><i class="bi bi-shield-check"></i> Recent Vaccines</h5>
+            {% if statistics.by_category.vaccine|default(0) > 0 %}
+                <div class="progress-timeline">
+                    {% for activity_type, count in statistics.by_type.items() %}
+                        {% if 'vaccination' in activity_type or 'immunization' in activity_type or 'booster' in activity_type %}
+                            <div class="timeline-item">
+                                <div class="timeline-content">
+                                    <span class="milestone-badge" style="background: linear-gradient(135deg, #00b894, #00a085);">Vaccine</span>
+                                    <p class="mb-1"><strong>{{ activity_type|replace('_', ' ')|title }}</strong></p>
+                                    <small class="text-muted">{{ count }} record{% if count != 1 %}s{% endif %}</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-light">
+                    <i class="bi bi-shield-check"></i>
+                    <strong>No vaccine records yet</strong><br>
+                    Add vaccine activities through <a href="{{ url_for('quick_add') }}" class="alert-link">Quick Add</a> to track immunization progress.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Additional Charts Row -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">
+                    <i class="bi bi-clock"></i> Activity by Hour
+                </h5>
+            </div>
+            <canvas id="hourlyChart" height="300"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">
+                    <i class="bi bi-pie-chart"></i> Category Distribution
+                </h5>
+            </div>
+            <canvas id="categoryChart" height="300"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+// Enhanced Chart Configuration
+const chartColors = {
+    feeding: '#74b9ff',
+    sleep: '#6c5ce7',
+    diaper: '#a29bfe',
+    health: '#fd79a8',
+    vaccine: '#fdcb6e',
+    measurement: '#00b894',
+    medicine: '#e17055'
+};
+
+// Feeding Trend Chart
+const feedingCtx = document.getElementById('feedingTrendChart').getContext('2d');
+const feedingData = {{ chart_data.feeding_insights.daily_trend|tojson|safe }};
+const feedingLabels = feedingData.map(d => d.date);
+const feedingAmounts = feedingData.map(d => d.amount);
+const feedingCounts = feedingData.map(d => d.count);
+
+new Chart(feedingCtx, {
+    type: 'line',
+    data: {
+        labels: feedingLabels.length ? feedingLabels : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+            label: 'Daily Total Feed (ml)',
+            data: feedingAmounts.length ? feedingAmounts : [0, 0, 0, 0, 0, 0, 0],
+            borderColor: chartColors.feeding,
+            backgroundColor: chartColors.feeding + '20',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+        }, {
+            label: 'Feeding Frequency',
+            data: feedingCounts.length ? feedingCounts : [0, 0, 0, 0, 0, 0, 0],
+            borderColor: '#0984e3',
+            backgroundColor: '#0984e3' + '20',
+            borderWidth: 3,
+            fill: false,
+            tension: 0.4,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Amount (ml)' }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: { display: true, text: 'Frequency' },
+                grid: { drawOnChartArea: false }
+            }
+        },
+        plugins: {
+            legend: { position: 'top' }
+        }
+    }
+});
+
+// Sleep Pattern Chart
+const sleepCtx = document.getElementById('sleepPatternChart').getContext('2d');
+const sleepData = {{ chart_data.sleep_insights.daily_trend|default([])|tojson }};
+const sleepLabels = sleepData.length ? sleepData.map(d => d.date) : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const sleepHours = sleepData.length ? sleepData.map(d => d.hours) : [0, 0, 0, 0, 0, 0, 0];
+
+new Chart(sleepCtx, {
+    type: 'line',
+    data: {
+        labels: sleepLabels,
+        datasets: [{
+            label: 'Daily Sleep Hours',
+            data: sleepHours,
+            borderColor: chartColors.sleep,
+            backgroundColor: chartColors.sleep + '20',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: chartColors.sleep,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Hours' },
+                max: 12
+            },
+            x: {
+                title: { display: true, text: 'Day' }
+            }
+        }
+    }
+});
+
+// Category Distribution Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Feeding', 'Sleep', 'Diaper', 'Health', 'Vaccines'],
+        datasets: [{
+            data: [{{ statistics.by_category.feeding|default(0) }}, {{ statistics.by_category.sleep|default(0) }}, {{ statistics.by_category.diaper|default(0) }}, {{ statistics.by_category.health|default(0) }}, {{ statistics.by_category.vaccine|default(0) }}],
+            backgroundColor: Object.values(chartColors),
+            borderWidth: 3,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+
+// Hourly Activity Chart
+const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+const hourlyData = {{ chart_data.hourly|default([])|tojson }};
+new Chart(hourlyCtx, {
+    type: 'bar',
+    data: {
+        labels: Array.from({length: 24}, (_, i) => i + ':00'),
+        datasets: [{
+            label: 'Activities',
+            data: hourlyData.length ? hourlyData : Array(24).fill(0),
+            backgroundColor: chartColors.feeding + '80',
+            borderColor: chartColors.feeding,
+            borderWidth: 1,
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'Activity Count' } }
+        }
+    }
+});
+
+// Interactive Functions
+function updateFeedingView(period) {
+    document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    // Add logic to update chart data based on period
+}
+
+function updateSleepView(period) {
+    document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    // Add logic to update chart data based on period
+}
+
+// Extraction Chart
+{% if chart_data and chart_data.extraction_insights.daily_trend %}
+const extractionCtx = document.getElementById('extractionChart').getContext('2d');
+const extractionData = {{ chart_data.extraction_insights.daily_trend|tojson|safe }};
+const extractionLabels = extractionData.map(d => d.date);
+const extractionAmounts = extractionData.map(d => d.amount);
+
+new Chart(extractionCtx, {
+    type: 'line',
+    data: {
+        labels: extractionLabels.length ? extractionLabels : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+            label: 'Daily Extraction (ml)',
+            data: extractionAmounts.length ? extractionAmounts : [0, 0, 0, 0, 0, 0, 0],
+            borderColor: '#17a2b8',
+            backgroundColor: '#17a2b8' + '20',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#17a2b8',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Amount (ml)' }
+            },
+            x: {
+                title: { display: true, text: 'Day' }
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+
+{% endif %}
+{% endblock %}

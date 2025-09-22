@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Baby Activity Journal{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<h3 class="text-center mb-4">
+    <i class="bi bi-graph-up"></i> Activity Analytics
+</h3>
+
+{% if not statistics or statistics.total_activities == 0 %}
+<div class="alert alert-light text-center">
+    <i class="bi bi-bar-chart" style="font-size: 3rem; color: #ddd;"></i>
+    <h5 class="mt-3">No Data Available</h5>
+    <p>Add some activities to see analytics and visualizations.</p>
+    <a href="{{ url_for('quick_add') }}" class="btn btn-custom">Add Activity</a>
+</div>
+{% else %}
+
+<!-- Summary Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <h3>{{ statistics.total_activities }}</h3>
+            <p class="mb-0">Total Activities</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <h3>{{ statistics.daily_averages.feedings|default(0) }}</h3>
+            <p class="mb-0">Daily Feedings</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <h3>{{ statistics.daily_averages.diaper_changes|default(0) }}</h3>
+            <p class="mb-0">Daily Diapers</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <h3>{{ statistics.daily_averages.sleep_sessions|default(0) }}</h3>
+            <p class="mb-0">Daily Sleep</p>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+{% if chart_data %}
+<div class="row">
+    <!-- Category Distribution -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-pie-chart"></i> Activities by Category</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Trend -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up"></i> Last 7 Days Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailyTrendChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hourly Distribution -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clock"></i> Activities by Hour of Day</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="hourlyChart" width="800" height="400"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Pattern -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-calendar-week"></i> Activities by Day of Week</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="weeklyChart" width="800" height="400"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Activity Type Breakdown -->
+{% if statistics.by_type %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list-task"></i> Activity Type Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for activity_type, count in statistics.by_type.items() %}
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center p-3 border rounded">
+                            <h4 class="text-primary">{{ count }}</h4>
+                            <p class="mb-0 small">{{ activity_type|replace('_', ' ')|title }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+// Chart colors
+const colors = {
+    feeding: '#74b9ff',
+    diaper: '#a29bfe',
+    sleep: '#6c5ce7',
+    health: '#fd79a8',
+    milestone: '#fdcb6e',
+    measurement: '#00b894',
+    medicine: '#e17055',
+    other: '#636e72'
+};
+
+{% if chart_data %}
+// Category Pie Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryData = {{ statistics.by_category|tojson }};
+const categoryLabels = Object.keys(categoryData);
+const categoryValues = Object.values(categoryData);
+const categoryColors = categoryLabels.map(label => colors[label] || '#636e72');
+
+new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+        labels: categoryLabels.map(label => label.charAt(0).toUpperCase() + label.slice(1)),
+        datasets: [{
+            data: categoryValues,
+            backgroundColor: categoryColors,
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Daily Trend Chart
+const dailyCtx = document.getElementById('dailyTrendChart').getContext('2d');
+const dailyData = {{ chart_data.daily_trend|tojson }};
+
+new Chart(dailyCtx, {
+    type: 'line',
+    data: {
+        labels: dailyData.map(d => d.date),
+        datasets: [{
+            label: 'Activities',
+            data: dailyData.map(d => d.count),
+            borderColor: '#6c5ce7',
+            backgroundColor: 'rgba(108, 92, 231, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// Hourly Distribution Chart
+const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+const hourlyData = {{ chart_data.hourly|tojson }};
+const hourLabels = Array.from({length: 24}, (_, i) => i + ':00');
+
+new Chart(hourlyCtx, {
+    type: 'bar',
+    data: {
+        labels: hourLabels,
+        datasets: [{
+            label: 'Activities',
+            data: hourlyData,
+            backgroundColor: 'rgba(108, 92, 231, 0.8)',
+            borderColor: '#6c5ce7',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// Weekly Pattern Chart
+const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+const weeklyData = {{ chart_data.weekday|tojson }};
+const weekLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+new Chart(weeklyCtx, {
+    type: 'bar',
+    data: {
+        labels: weekLabels,
+        datasets: [{
+            label: 'Activities',
+            data: weeklyData,
+            backgroundColor: [
+                '#74b9ff', '#a29bfe', '#6c5ce7', '#fd79a8',
+                '#fdcb6e', '#00b894', '#e17055'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+
+{% endif %}
+{% endblock %}

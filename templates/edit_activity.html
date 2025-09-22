@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Activity - Baby Activity Journal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('activities') }}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h3>
+                <i class="bi bi-pencil-square"></i> Edit Activity
+            </h3>
+        </div>
+
+        <form id="editActivityForm">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category" required>
+                        {% for cat in categories %}
+                            <option value="{{ cat }}" {% if activity.category == cat %}selected{% endif %}>
+                                {{ cat|capitalize }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="activity_type" class="form-label">Activity Type</label>
+                    <select class="form-select" id="activity_type" name="activity_type" required>
+                        {% for atype in activity_types %}
+                            <option value="{{ atype }}" {% if activity.activity_type == atype %}selected{% endif %}>
+                                {{ atype|replace('_', ' ')|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="date" name="date"
+                           value="{{ activity.timestamp[:10] }}" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="time" class="form-label">Time</label>
+                    <input type="time" class="form-control" id="time" name="time"
+                           value="{{ activity.timestamp[11:16] }}" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required>{{ activity.description }}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="amount" class="form-label">Amount</label>
+                    <input type="number" class="form-control" id="amount" name="amount"
+                           step="0.1" value="{{ activity.amount or '' }}">
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="unit" class="form-label">Unit</label>
+                    <select class="form-select" id="unit" name="unit">
+                        <option value="">None</option>
+                        <option value="ml" {% if activity.unit == 'ml' %}selected{% endif %}>ml</option>
+                        <option value="oz" {% if activity.unit == 'oz' %}selected{% endif %}>oz</option>
+                        <option value="g" {% if activity.unit == 'g' %}selected{% endif %}>g</option>
+                        <option value="kg" {% if activity.unit == 'kg' %}selected{% endif %}>kg</option>
+                        <option value="lbs" {% if activity.unit == 'lbs' %}selected{% endif %}>lbs</option>
+                        <option value="cm" {% if activity.unit == 'cm' %}selected{% endif %}>cm</option>
+                        <option value="inches" {% if activity.unit == 'inches' %}selected{% endif %}>inches</option>
+                        <option value="degrees" {% if activity.unit == 'degrees' %}selected{% endif %}>degrees</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="duration_minutes" class="form-label">Duration (minutes)</label>
+                    <input type="number" class="form-control" id="duration_minutes" name="duration_minutes"
+                           value="{{ activity.duration_minutes or '' }}">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="2">{{ activity.notes or '' }}</textarea>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>Tips:</strong>
+                <ul class="mb-0">
+                    <li>Change category to properly group this activity</li>
+                    <li>Adjust time if the automatic detection was incorrect</li>
+                    <li>Add amounts for feeding or measurements</li>
+                    <li>Use duration for sleep activities</li>
+                </ul>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-custom flex-fill">
+                    <i class="bi bi-check-circle"></i> Save Changes
+                </button>
+                <a href="{{ url_for('activities') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('editActivityForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const data = {};
+
+    // Collect form data
+    for (let [key, value] of formData.entries()) {
+        if (value.trim() !== '') {
+            data[key] = value;
+        }
+    }
+
+    // Combine date and time into timestamp
+    if (data.date && data.time) {
+        data.timestamp = data.date + 'T' + data.time + ':00';
+        delete data.date;
+        delete data.time;
+    }
+
+    // Convert empty strings to null for numeric fields
+    if (data.amount === '') data.amount = null;
+    if (data.duration_minutes === '') data.duration_minutes = null;
+    if (data.unit === '') data.unit = null;
+
+    // Send update request
+    fetch(`/api/activity/{{ activity_id }}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert('Activity updated successfully!');
+            window.location.href = '{{ url_for("activities") }}';
+        } else {
+            alert('Failed to update activity: ' + result.message);
+        }
+    })
+    .catch(error => {
+        alert('Error updating activity: ' + error);
+    });
+});
+
+// Update activity type options based on category
+document.getElementById('category').addEventListener('change', function() {
+    const category = this.value;
+    const activityTypeSelect = document.getElementById('activity_type');
+
+    // Clear current options
+    activityTypeSelect.innerHTML = '';
+
+    // Add relevant options based on category
+    const typeOptions = {
+        'feeding': [
+            ['bottle_feed', 'Bottle Feed'],
+            ['breast_feed', 'Breast Feed'],
+            ['solid_food', 'Solid Food']
+        ],
+        'diaper': [
+            ['wet_diaper', 'Wet Diaper'],
+            ['dirty_diaper', 'Dirty Diaper'],
+            ['diaper_change', 'Diaper Change']
+        ],
+        'sleep': [
+            ['nap', 'Nap'],
+            ['night_sleep', 'Night Sleep'],
+            ['wake_up', 'Wake Up']
+        ],
+        'health': [
+            ['temperature', 'Temperature'],
+            ['symptom', 'Symptom'],
+            ['doctor_visit', 'Doctor Visit']
+        ],
+        'measurement': [
+            ['weight', 'Weight'],
+            ['height', 'Height'],
+            ['head_circumference', 'Head Circumference']
+        ],
+        'medicine': [
+            ['medication', 'Medication'],
+            ['vitamin', 'Vitamin']
+        ],
+        'milestone': [
+            ['physical', 'Physical Milestone'],
+            ['cognitive', 'Cognitive Milestone'],
+            ['social', 'Social Milestone']
+        ]
+    };
+
+    const options = typeOptions[category] || [['other', 'Other']];
+
+    options.forEach(([value, text]) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = text;
+        activityTypeSelect.appendChild(option);
+    });
+});
+</script>
+{% endblock %}

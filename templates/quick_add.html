@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Quick Add - Baby Activity Journal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h3 class="text-center mb-4">
+            <i class="bi bi-plus-circle"></i> Quick Add Activity
+        </h3>
+
+        <form method="POST" action="{{ url_for('quick_add') }}">
+            <div class="mb-3">
+                <label for="message" class="form-label">Activity Description</label>
+                <textarea class="form-control" id="message" name="message" rows="3"
+                          placeholder="E.g., Baby fed 150ml bottle at 10:30am" required></textarea>
+                <div class="form-text">
+                    Describe the activity naturally. The system will try to parse and categorize it automatically.
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <h6>Quick Templates:</h6>
+                <div class="btn-group-vertical w-100" role="group">
+                    <button type="button" class="btn btn-outline-primary text-start" onclick="setTemplate('feeding')">
+                        <i class="bi bi-cup-straw"></i> Feeding
+                    </button>
+                    <button type="button" class="btn btn-outline-info text-start" onclick="setTemplate('diaper')">
+                        <i class="bi bi-droplet"></i> Diaper Change
+                    </button>
+                    <button type="button" class="btn btn-outline-purple text-start" onclick="setTemplate('sleep')">
+                        <i class="bi bi-moon"></i> Sleep/Nap
+                    </button>
+                    <button type="button" class="btn btn-outline-danger text-start" onclick="setTemplate('medicine')">
+                        <i class="bi bi-capsule"></i> Medicine
+                    </button>
+                    <button type="button" class="btn btn-outline-success text-start" onclick="setTemplate('milestone')">
+                        <i class="bi bi-star"></i> Milestone
+                    </button>
+                    <button type="button" class="btn btn-outline-warning text-start" onclick="setTemplate('measurement')">
+                        <i class="bi bi-ruler"></i> Measurement
+                    </button>
+                </div>
+            </div>
+
+            <div class="alert alert-light">
+                <h6><i class="bi bi-lightbulb"></i> Tips:</h6>
+                <ul class="mb-0 small">
+                    <li>Include quantities: "150ml", "2 hours", "98.6F"</li>
+                    <li>Use keywords: "fed", "bottle", "diaper", "slept", "nap"</li>
+                    <li>Add context: "fussy", "happy", "first time"</li>
+                    <li>Time is optional (current time will be used)</li>
+                </ul>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-custom">
+                    <i class="bi bi-check-circle"></i> Add Activity
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Home
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function setTemplate(type) {
+    const templates = {
+        'feeding': 'Baby fed 150ml bottle',
+        'diaper': 'Changed wet diaper',
+        'sleep': 'Baby napped for 2 hours',
+        'medicine': 'Gave vitamin D drops',
+        'milestone': 'Baby rolled over for the first time!',
+        'measurement': 'Baby weighs 7.5 kg'
+    };
+
+    document.getElementById('message').value = templates[type];
+}
+</script>
+{% endblock %}
