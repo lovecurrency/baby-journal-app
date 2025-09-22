@@ -1,0 +1,14 @@
+services:
+  # Web service for the Baby Journal App
+  - type: web
+    name: baby-journal-app
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn main:app --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+    # Optional: Set to false if you want the app to stay running
+    autoDeploy: true
