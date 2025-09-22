@@ -103,17 +103,30 @@ def setup():
                                     birth_weight=birth_weight, birth_height=birth_height)
                 journal.set_profile(profile)
 
-                # Reload to ensure profile is properly set
+                # Verify profile was actually saved to database
                 journal.load_profile()
 
-                if journal.profile:
-                    flash('Baby profile created successfully!', 'success')
+                if journal.profile and journal.profile.id:
+                    # Double-check by querying database directly
+                    from app.database import get_db_service
+                    db = get_db_service()
+                    db_profile = db.get_profile(journal.profile.id)
+
+                    if db_profile:
+                        flash(f'Baby profile created successfully! Profile ID: {journal.profile.id}', 'success')
+                        logger.info(f"Profile verification successful - found in database: {db_profile}")
+                    else:
+                        flash('Profile appeared to save but not found in database. Please try again.', 'error')
+                        logger.error(f"Profile not found in database after save: {journal.profile.id}")
                 else:
-                    flash('Profile creation failed. Please try again.', 'error')
+                    flash('Profile creation failed - not found after save. Please try again.', 'error')
+                    logger.error("Profile not loaded after creation")
 
                 return redirect(url_for('index'))
             except Exception as e:
                 logger.error(f"Error creating profile: {e}")
+                import traceback
+                logger.error(f"Profile creation traceback: {traceback.format_exc()}")
                 flash(f'Error creating profile: {str(e)}', 'error')
 
     return render_template('setup.html', profile=journal.profile)
@@ -514,15 +527,33 @@ def health_check():
         # Test database connection
         from app.database import get_db_service
         db = get_db_service()
-        db.db.execute_query("SELECT 1 as test;")
+        test_result = db.db.execute_query("SELECT 1 as test;")
+
+        # Test table existence
+        tables_result = db.db.execute_query("""
+            SELECT table_name FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name IN ('baby_profiles', 'baby_activities');
+        """)
+
+        tables = [row['table_name'] for row in tables_result] if tables_result else []
+
+        # Test profile operations
+        profile_count = db.db.execute_query("SELECT COUNT(*) as count FROM baby_profiles;")
+        activity_count = db.db.execute_query("SELECT COUNT(*) as count FROM baby_activities;")
 
         return jsonify({
             'status': 'healthy',
             'database': 'connected',
+            'tables': tables,
+            'profiles_count': profile_count[0]['count'] if profile_count else 0,
+            'activities_count': activity_count[0]['count'] if activity_count else 0,
+            'test_query': test_result[0] if test_result else None,
             'timestamp': datetime.now().isoformat()
         })
     except Exception as e:
         logger.error(f"Health check failed: {e}")
+        import traceback
+        logger.error(f"Health check traceback: {traceback.format_exc()}")
         return jsonify({
             'status': 'unhealthy',
             'error': str(e),

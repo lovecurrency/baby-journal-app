@@ -66,18 +66,24 @@ class DatabaseConnection:
         """Execute a database query."""
         conn = None
         try:
+            logger.debug(f"Executing query: {query[:100]}... with params: {params}")
             conn = self.get_connection()
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(query, params)
                 if fetch:
-                    return [dict(row) for row in cursor.fetchall()]
+                    result = [dict(row) for row in cursor.fetchall()]
+                    logger.debug(f"Query returned {len(result)} rows")
+                    return result
                 else:
                     conn.commit()
+                    logger.debug("Query executed and committed successfully")
                     return None
         except Exception as e:
             if conn:
                 conn.rollback()
             logger.error(f"Database query error: {e}")
+            logger.error(f"Query: {query}")
+            logger.error(f"Params: {params}")
             raise
         finally:
             if conn:

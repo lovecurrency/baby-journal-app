@@ -197,7 +197,7 @@ class BabyProfile:
     @classmethod
     def from_db_row(cls, row: Dict) -> 'BabyProfile':
         """Create profile from database row."""
-        return cls(
+        profile = cls(
             id=str(row['id']),
             name=row['name'],
             birth_date=row['birth_date'],
@@ -205,24 +205,19 @@ class BabyProfile:
             birth_weight=row['birth_weight'],
             birth_height=row['birth_height']
         )
+        profile._is_from_db = True  # Mark as loaded from database
+        return profile
 
     def save(self) -> bool:
         """Save profile to database."""
         try:
             db = get_db_service()
-            existing = db.get_profile(self.id)
+            logger.info(f"Attempting to save profile: {self.name}, ID: {self.id}")
 
-            if existing:
-                # Update existing profile
-                return db.update_profile(
-                    self.id,
-                    name=self.name,
-                    birth_date=self.birth_date,
-                    gender=self.gender,
-                    birth_weight=self.birth_weight,
-                    birth_height=self.birth_height
-                )
-            else:
+            # For new profiles (just created), always try to create
+            # Don't check existing since we're creating a new one
+            if not hasattr(self, '_is_from_db') or not self._is_from_db:
+                logger.info("Creating new profile in database")
                 # Create new profile
                 new_id = db.create_profile(
                     name=self.name,
@@ -232,11 +227,30 @@ class BabyProfile:
                     birth_height=self.birth_height
                 )
                 if new_id:
+                    logger.info(f"Profile created successfully with ID: {new_id}")
                     self.id = new_id
+                    self._is_from_db = True
                     return True
-                return False
+                else:
+                    logger.error("Profile creation returned None - database insert failed")
+                    return False
+            else:
+                # Update existing profile
+                logger.info(f"Updating existing profile with ID: {self.id}")
+                result = db.update_profile(
+                    self.id,
+                    name=self.name,
+                    birth_date=self.birth_date,
+                    gender=self.gender,
+                    birth_weight=self.birth_weight,
+                    birth_height=self.birth_height
+                )
+                logger.info(f"Profile update result: {result}")
+                return result
         except Exception as e:
             logger.error(f"Error saving profile: {e}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             return False
 
     def delete(self) -> bool:
@@ -260,10 +274,15 @@ class ActivityJournal:
     def set_profile(self, profile: BabyProfile):
         """Set baby profile."""
         self.profile = profile
-        if profile.save():
-            logger.info(f"Profile saved successfully: {profile.name}")
-        else:
-            logger.error("Failed to save profile")
+        try:
+            if profile.save():
+                logger.info(f"Profile saved successfully: {profile.name}")
+            else:
+                logger.error("Failed to save profile")
+                raise Exception("Profile save operation returned False - database insert failed")
+        except Exception as e:
+            logger.error(f"Error in set_profile: {e}")
+            raise e
 
     def load_profile(self) -> Optional[BabyProfile]:
         """Load profile from database."""
