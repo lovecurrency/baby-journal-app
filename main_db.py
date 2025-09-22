@@ -275,10 +275,45 @@ def analytics():
         # Get recent activities for chart calculations with error handling
         try:
             logger.info("Getting recent activities for analytics")
+
+            # First check if profile is loaded
+            if not journal.profile:
+                logger.warning("No profile found in journal, attempting to load")
+                journal.load_profile()
+                if journal.profile:
+                    logger.info(f"Profile loaded: {journal.profile.name} (ID: {journal.profile.id})")
+                else:
+                    logger.error("No profile could be loaded - this will prevent activities retrieval")
+            else:
+                logger.info(f"Profile already loaded: {journal.profile.name} (ID: {journal.profile.id})")
+
             recent_activities = journal.get_recent_activities(limit=1000)
             logger.info(f"Retrieved {len(recent_activities)} recent activities")
+
+            # Log some details about the activities if any exist
+            if recent_activities:
+                logger.info(f"Sample activity: {recent_activities[0].description[:50]}...")
+                categories = {}
+                for activity in recent_activities[:10]:  # Check first 10
+                    cat = activity.category.value if activity.category else 'unknown'
+                    categories[cat] = categories.get(cat, 0) + 1
+                logger.info(f"Activity categories found: {categories}")
+            else:
+                logger.warning("No activities retrieved - checking database directly")
+                # Try to get total activity count from database
+                try:
+                    if journal.profile:
+                        total_stats = journal.get_statistics()
+                        logger.info(f"Database statistics: {total_stats}")
+                    else:
+                        logger.error("Cannot check database statistics - no profile loaded")
+                except Exception as db_e:
+                    logger.error(f"Error getting database statistics: {db_e}")
+
         except Exception as e:
             logger.error(f"Error getting recent activities: {e}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             recent_activities = []
 
         # Initialize default chart data
