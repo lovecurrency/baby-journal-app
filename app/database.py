@@ -190,12 +190,14 @@ class DatabaseService:
             );
             """
 
-            # Create indexes
+            # Create indexes and constraints
             indexes = [
                 "CREATE INDEX IF NOT EXISTS idx_activities_profile_id ON baby_activities(profile_id);",
                 "CREATE INDEX IF NOT EXISTS idx_activities_timestamp ON baby_activities(timestamp);",
                 "CREATE INDEX IF NOT EXISTS idx_activities_category ON baby_activities(category);",
-                "CREATE INDEX IF NOT EXISTS idx_activities_type ON baby_activities(activity_type);"
+                "CREATE INDEX IF NOT EXISTS idx_activities_type ON baby_activities(activity_type);",
+                # Unique constraint to prevent duplicate activities
+                "CREATE UNIQUE INDEX IF NOT EXISTS idx_activities_unique ON baby_activities(profile_id, timestamp, description, COALESCE(amount, 0));"
             ]
 
             # Execute table creation
@@ -274,18 +276,62 @@ class DatabaseService:
                        activity_type: str, description: str, amount: float = None,
                        unit: str = None, duration_minutes: int = None, notes: str = None,
                        tags: List[str] = None, source: str = 'manual', sender: str = None) -> str:
-        """Create a new activity."""
+        """Create a new activity, handling duplicates gracefully."""
         query = """
+        INSERT INTO baby_activities
+        (profile_id, timestamp, category, activity_type, description, amount, unit,
+         duration_minutes, notes, tags, source, sender)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT ON CONSTRAINT idx_activities_unique DO NOTHING
+        RETURNING id;
+        """
+        params = (profile_id, timestamp, category, activity_type, description, amount,
+                 unit, duration_minutes, notes, tags, source, sender)
+
+        try:
+            result = self.db.execute_insert_returning(query, params)
+            return str(result) if result else None  # None means duplicate was skipped
+        except Exception as e:
+            # Fallback for databases that don't support ON CONFLICT
+            logger.warning(f"Conflict handling failed, trying duplicate check: {e}")
+            return self._create_activity_with_duplicate_check(profile_id, timestamp, category,
+                                                            activity_type, description, amount,
+                                                            unit, duration_minutes, notes, tags,
+                                                            source, sender)
+
+    def _create_activity_with_duplicate_check(self, profile_id: str, timestamp: datetime,
+                                             category: str, activity_type: str, description: str,
+                                             amount: float = None, unit: str = None,
+                                             duration_minutes: int = None, notes: str = None,
+                                             tags: List[str] = None, source: str = 'manual',
+                                             sender: str = None) -> str:
+        """Fallback method to create activity with manual duplicate check."""
+        # Check if duplicate exists
+        check_query = """
+        SELECT id FROM baby_activities
+        WHERE profile_id = %s AND timestamp = %s AND description = %s
+        AND COALESCE(amount, 0) = COALESCE(%s, 0)
+        LIMIT 1;
+        """
+        check_params = (profile_id, timestamp, description, amount)
+        existing = self.db.execute_query(check_query, check_params)
+
+        if existing:
+            logger.info("Duplicate activity detected, skipping")
+            return None  # Duplicate found, skip insertion
+
+        # No duplicate, proceed with insert
+        insert_query = """
         INSERT INTO baby_activities
         (profile_id, timestamp, category, activity_type, description, amount, unit,
          duration_minutes, notes, tags, source, sender)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id;
         """
-        params = (profile_id, timestamp, category, activity_type, description, amount,
-                 unit, duration_minutes, notes, tags, source, sender)
+        insert_params = (profile_id, timestamp, category, activity_type, description, amount,
+                        unit, duration_minutes, notes, tags, source, sender)
 
-        result = self.db.execute_insert_returning(query, params)
+        result = self.db.execute_insert_returning(insert_query, insert_params)
         return str(result) if result else None
 
     def get_activities(self, profile_id: str, limit: int = None,

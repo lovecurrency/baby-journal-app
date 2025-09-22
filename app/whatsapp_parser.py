@@ -420,8 +420,8 @@ class WhatsAppParser:
         if 'ml' in text_lower or 'oz' in text_lower:
             return 'bottle'
 
-        # Default to unknown
-        return 'unknown'
+        # Default to breast feeding if no specific type mentioned
+        return 'breast'
 
     def export_to_json(self, output_path: str):
         """Export parsed activities to JSON file."""

@@ -160,18 +160,44 @@ def upload_whatsapp():
 
                 # Add activities to journal
                 saved_count = 0
+                duplicate_count = 0
+                error_count = 0
+
                 for activity in activities:
                     try:
-                        journal.add_activity(activity)
-                        saved_count += 1
+                        # Try to save the activity
+                        if journal.add_activity(activity):
+                            saved_count += 1
+                        else:
+                            # Check if it was a duplicate by trying to find it in database
+                            db = get_db_service()
+                            existing = db.get_activities(
+                                journal.profile.id,
+                                limit=1
+                            )
+                            # Simple heuristic: if we have activities in DB, likely a duplicate
+                            if existing:
+                                duplicate_count += 1
+                            else:
+                                error_count += 1
                     except Exception as e:
                         logger.error(f"Failed to save activity: {e}")
+                        error_count += 1
 
                 # Reload activities from database to update display
                 journal.load_activities()
 
+                # Provide detailed feedback
+                total_processed = len(activities)
                 if saved_count > 0:
-                    flash(f'Successfully processed and saved {saved_count} activities!', 'success')
+                    message = f'Successfully processed {total_processed} activities: {saved_count} new'
+                    if duplicate_count > 0:
+                        message += f', {duplicate_count} duplicates skipped'
+                    if error_count > 0:
+                        message += f', {error_count} errors'
+                    flash(message, 'success')
+                elif duplicate_count > 0:
+                    flash(f'Processed {total_processed} activities: {duplicate_count} were duplicates (skipped)', 'info')
                 else:
                     flash('No activities were saved. Please check if you have created a baby profile first.', 'warning')
 
