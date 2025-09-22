@@ -319,24 +319,24 @@ def analytics():
             }
 
             if feeding_activities:
-            # Average amount
-            amounts = [a.amount for a in feeding_activities if a.amount]
-            if amounts:
-                feeding_insights['avg_amount'] = round(sum(amounts) / len(amounts), 1)
+                # Average amount
+                amounts = [a.amount for a in feeding_activities if a.amount]
+                if amounts:
+                    feeding_insights['avg_amount'] = round(sum(amounts) / len(amounts), 1)
 
-            # Calculate daily feeding trend for last 7 days
-            for i in range(6, -1, -1):
-                date = today - timedelta(days=i)
-                day_feedings = [a for a in feeding_activities if a.timestamp.date() == date]
-                daily_amounts = [a.amount for a in day_feedings if a.amount]
-                total_amount = sum(daily_amounts) if daily_amounts else 0
-                feeding_insights['daily_trend'].append({
-                    'date': date.strftime('%a'),
-                    'amount': round(total_amount, 1),
-                    'count': len(day_feedings)
-                })
+                # Calculate daily feeding trend for last 7 days
+                for i in range(6, -1, -1):
+                    date = today - timedelta(days=i)
+                    day_feedings = [a for a in feeding_activities if a.timestamp.date() == date]
+                    daily_amounts = [a.amount for a in day_feedings if a.amount]
+                    total_amount = sum(daily_amounts) if daily_amounts else 0
+                    feeding_insights['daily_trend'].append({
+                        'date': date.strftime('%a'),
+                        'amount': round(total_amount, 1),
+                        'count': len(day_feedings)
+                    })
 
-            # Bottle percentage (with safe access)
+                # Bottle percentage (with safe access)
                 bottle_feeds = 0
                 for a in feeding_activities:
                     try:
@@ -344,21 +344,21 @@ def analytics():
                             bottle_feeds += 1
                     except Exception:
                         continue
-            feeding_insights['bottle_percentage'] = round((bottle_feeds / len(feeding_activities)) * 100, 1)
+                feeding_insights['bottle_percentage'] = round((bottle_feeds / len(feeding_activities)) * 100, 1)
 
-            # Daily and weekly average totals
-            daily_totals = []
-            for i in range(7):  # Last 7 days
-                date = today - timedelta(days=i)
-                day_feedings = [a for a in feeding_activities if a.timestamp.date() == date]
-                daily_amounts = [a.amount for a in day_feedings if a.amount]
-                daily_total = sum(daily_amounts) if daily_amounts else 0
-                if daily_total > 0:  # Only count days with feeding data
-                    daily_totals.append(daily_total)
+                # Daily and weekly average totals
+                daily_totals = []
+                for i in range(7):  # Last 7 days
+                    date = today - timedelta(days=i)
+                    day_feedings = [a for a in feeding_activities if a.timestamp.date() == date]
+                    daily_amounts = [a.amount for a in day_feedings if a.amount]
+                    daily_total = sum(daily_amounts) if daily_amounts else 0
+                    if daily_total > 0:  # Only count days with feeding data
+                        daily_totals.append(daily_total)
 
-            if daily_totals:
-                feeding_insights['daily_avg_total'] = round(sum(daily_totals) / len(daily_totals), 1)
-                feeding_insights['weekly_avg_total'] = round(sum(daily_totals), 1)
+                if daily_totals:
+                    feeding_insights['daily_avg_total'] = round(sum(daily_totals) / len(daily_totals), 1)
+                    feeding_insights['weekly_avg_total'] = round(sum(daily_totals), 1)
 
             # Calculate sleep insights (with safe property access)
             sleep_activities = []
@@ -380,50 +380,50 @@ def analytics():
             }
 
             if sleep_activities:
-            # Calculate average daily sleep
-            durations = [a.duration_minutes for a in sleep_activities if a.duration_minutes]
-            if durations:
-                total_minutes = sum(durations)
-                sleep_insights['total_daily_sleep'] = round(total_minutes / 60, 1)
+                # Calculate average daily sleep
+                durations = [a.duration_minutes for a in sleep_activities if a.duration_minutes]
+                if durations:
+                    total_minutes = sum(durations)
+                    sleep_insights['total_daily_sleep'] = round(total_minutes / 60, 1)
 
-                # Sleep pattern by type
-                night_sleeps = [a for a in sleep_activities if 'night' in a.activity_type.value.lower()]
-                naps = [a for a in sleep_activities if 'nap' in a.activity_type.value.lower()]
+                    # Sleep pattern by type
+                    night_sleeps = [a for a in sleep_activities if 'night' in a.activity_type.value.lower()]
+                    naps = [a for a in sleep_activities if 'nap' in a.activity_type.value.lower()]
 
-                if night_sleeps:
-                    night_durations = [a.duration_minutes for a in night_sleeps if a.duration_minutes]
-                    if night_durations:
-                        sleep_insights['night_sleep_avg'] = round(sum(night_durations) / len(night_durations) / 60, 1)
+                    if night_sleeps:
+                        night_durations = [a.duration_minutes for a in night_sleeps if a.duration_minutes]
+                        if night_durations:
+                            sleep_insights['night_sleep_avg'] = round(sum(night_durations) / len(night_durations) / 60, 1)
 
-                sleep_insights['nap_count'] = len(naps)
-                sleep_insights['sleep_efficiency'] = min(95, round((total_minutes / (24 * 60)) * 100 * 2, 1))  # Rough calculation
+                    sleep_insights['nap_count'] = len(naps)
+                    sleep_insights['sleep_efficiency'] = min(95, round((total_minutes / (24 * 60)) * 100 * 2, 1))  # Rough calculation
 
-                # Calculate day sleep (6 AM to 9 PM)
-                day_sleep_minutes = 0
-                for activity in sleep_activities:
-                    if activity.duration_minutes and 6 <= activity.timestamp.hour <= 21:
-                        day_sleep_minutes += activity.duration_minutes
+                    # Calculate day sleep (6 AM to 9 PM)
+                    day_sleep_minutes = 0
+                    for activity in sleep_activities:
+                        if activity.duration_minutes and 6 <= activity.timestamp.hour <= 21:
+                            day_sleep_minutes += activity.duration_minutes
 
-                sleep_insights['day_sleep_avg'] = round(day_sleep_minutes / 60, 1)
+                    sleep_insights['day_sleep_avg'] = round(day_sleep_minutes / 60, 1)
 
             # Generate dynamic insights if insights generator is available
             try:
-            insights_generator = InsightsGenerator(journal.activities)
-            feeding_dynamic_insights = insights_generator.generate_feeding_insights()
-            sleep_dynamic_insights = insights_generator.generate_sleep_insights()
-        except Exception as e:
-            logger.warning(f"Could not generate dynamic insights: {e}")
-            feeding_dynamic_insights = []
-            sleep_dynamic_insights = []
+                insights_generator = InsightsGenerator(journal.activities)
+                feeding_dynamic_insights = insights_generator.generate_feeding_insights()
+                sleep_dynamic_insights = insights_generator.generate_sleep_insights()
+            except Exception as e:
+                logger.warning(f"Could not generate dynamic insights: {e}")
+                feeding_dynamic_insights = []
+                sleep_dynamic_insights = []
 
             chart_data = {
-            'hourly': hour_distribution,
-            'weekday': weekday_distribution,
-            'daily_trend': daily_counts,
-            'feeding_insights': feeding_insights,
-            'sleep_insights': sleep_insights,
-            'feeding_dynamic_insights': feeding_dynamic_insights,
-            'sleep_dynamic_insights': sleep_dynamic_insights
+                'hourly': hour_distribution,
+                'weekday': weekday_distribution,
+                'daily_trend': daily_counts,
+                'feeding_insights': feeding_insights,
+                'sleep_insights': sleep_insights,
+                'feeding_dynamic_insights': feeding_dynamic_insights,
+                'sleep_dynamic_insights': sleep_dynamic_insights
             }
         else:
             chart_data = None
