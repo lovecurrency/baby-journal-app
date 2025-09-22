@@ -279,17 +279,24 @@ class ActivityJournal:
 
     def add_activity(self, activity: BabyActivity):
         """Add a new activity to journal."""
+        # Try to reload profile if missing
         if not self.profile:
-            logger.error("Cannot add activity without a profile")
-            return
+            logger.warning("Profile not loaded, attempting to reload from database")
+            self.load_profile()
+
+        if not self.profile:
+            logger.error("Cannot add activity without a profile - please create profile first")
+            raise Exception("Profile is required to add activities. Please create a baby profile first.")
 
         activity.profile_id = self.profile.id
         if activity.save():
             logger.info(f"Activity saved successfully: {activity.description}")
             # Update cache
             self.activities.append(activity)
+            return True
         else:
             logger.error("Failed to save activity")
+            raise Exception("Failed to save activity to database")
 
     def load_activities(self) -> List[BabyActivity]:
         """Load activities from database."""

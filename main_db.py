@@ -53,6 +53,14 @@ def inject_profile():
 @app.route('/')
 def index():
     """Home page showing recent activities and statistics."""
+    # Ensure profile is loaded
+    if not journal.profile:
+        journal.load_profile()
+
+    # Load fresh activities from database
+    if journal.profile:
+        journal.load_activities()
+
     recent_activities = journal.get_recent_activities(limit=10)
     stats = journal.get_statistics()
 
@@ -63,10 +71,14 @@ def index():
         act_dict['timestamp_formatted'] = datetime.fromisoformat(act_dict['timestamp']).strftime('%Y-%m-%d %H:%M')
         activities_display.append(act_dict)
 
+    # Check if profile exists for user guidance
+    needs_profile = not journal.profile
+
     return render_template('index.html',
                          profile=journal.profile,
                          recent_activities=activities_display,
-                         statistics=stats)
+                         statistics=stats,
+                         needs_profile=needs_profile)
 
 
 @app.route('/setup', methods=['GET', 'POST'])
@@ -86,11 +98,23 @@ def setup():
             birth_weight = float(birth_weight_str) if birth_weight_str else None
             birth_height = float(birth_height_str) if birth_height_str else None
 
-            profile = BabyProfile(name=name, birth_date=birth_date, gender=gender,
-                                birth_weight=birth_weight, birth_height=birth_height)
-            journal.set_profile(profile)
-            flash('Baby profile created successfully!', 'success')
-            return redirect(url_for('index'))
+            try:
+                profile = BabyProfile(name=name, birth_date=birth_date, gender=gender,
+                                    birth_weight=birth_weight, birth_height=birth_height)
+                journal.set_profile(profile)
+
+                # Reload to ensure profile is properly set
+                journal.load_profile()
+
+                if journal.profile:
+                    flash('Baby profile created successfully!', 'success')
+                else:
+                    flash('Profile creation failed. Please try again.', 'error')
+
+                return redirect(url_for('index'))
+            except Exception as e:
+                logger.error(f"Error creating profile: {e}")
+                flash(f'Error creating profile: {str(e)}', 'error')
 
     return render_template('setup.html', profile=journal.profile)
 
@@ -118,10 +142,22 @@ def upload_whatsapp():
                 activities = processor.process_whatsapp_file(filepath)
 
                 # Add activities to journal
+                saved_count = 0
                 for activity in activities:
-                    journal.add_activity(activity)
+                    try:
+                        journal.add_activity(activity)
+                        saved_count += 1
+                    except Exception as e:
+                        logger.error(f"Failed to save activity: {e}")
 
-                flash(f'Successfully processed {len(activities)} activities!', 'success')
+                # Reload activities from database to update display
+                journal.load_activities()
+
+                if saved_count > 0:
+                    flash(f'Successfully processed and saved {saved_count} activities!', 'success')
+                else:
+                    flash('No activities were saved. Please check if you have created a baby profile first.', 'warning')
+
                 return redirect(url_for('index'))
 
             except Exception as e:
@@ -140,24 +176,32 @@ def quick_add():
         activity_type = request.form.get('activity_type', 'other')
 
         if message:
-            # Process the message
-            activity = processor.process_message(message, sender='Manual Entry')
+            try:
+                # Process the message
+                activity = processor.process_message(message, sender='Manual Entry')
 
-            if activity:
-                journal.add_activity(activity)
-                flash('Activity added successfully!', 'success')
-            else:
-                # Create a basic activity if processing fails
-                activity = BabyActivity(
-                    timestamp=datetime.now(),
-                    category=ActivityCategory.OTHER,
-                    activity_type=ActivityType.OTHER,
-                    description=message,
-                    notes=message,
-                    source='manual'
-                )
-                journal.add_activity(activity)
-                flash('Activity added (uncategorized)', 'info')
+                if activity:
+                    journal.add_activity(activity)
+                    flash('Activity added successfully!', 'success')
+                else:
+                    # Create a basic activity if processing fails
+                    activity = BabyActivity(
+                        timestamp=datetime.now(),
+                        category=ActivityCategory.OTHER,
+                        activity_type=ActivityType.OTHER,
+                        description=message,
+                        notes=message,
+                        source='manual'
+                    )
+                    journal.add_activity(activity)
+                    flash('Activity added (uncategorized)', 'info')
+
+                # Reload activities to update display
+                journal.load_activities()
+
+            except Exception as e:
+                logger.error(f"Error adding activity: {e}")
+                flash(f'Error adding activity: {str(e)}', 'error')
 
             return redirect(url_for('index'))
 
