@@ -56,45 +56,49 @@
 {% else %}
 
 <!-- Feeding Metrics -->
+{% if metrics %}
 <div class="row mb-4">
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="metric-card">
-            <div class="metric-value">{{ feeding_data|length }}</div>
-            <div class="metric-label">Total Feeds</div>
+            <div class="metric-value">{{ metrics.daily_avg_feed }}</div>
+            <div class="metric-label">Daily Avg Feed</div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="metric-card">
-            <div class="metric-value">
-                {% set total_amount = feeding_data|selectattr('amount')|map(attribute='amount')|sum %}
-                {{ total_amount|round(1) }}ml
-            </div>
-            <div class="metric-label">Total Amount</div>
+            <div class="metric-value">{{ metrics.frequency }}</div>
+            <div class="metric-label">Frequency</div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="metric-card">
-            <div class="metric-value">
-                {% set amounts = feeding_data|selectattr('amount')|map(attribute='amount')|list %}
-                {% if amounts %}
-                    {{ (amounts|sum / amounts|length)|round(1) }}ml
-                {% else %}
-                    0ml
-                {% endif %}
-            </div>
-            <div class="metric-label">Average Amount</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="metric-card">
-            <div class="metric-value">
-                {% set dates = feeding_data|map(attribute='date')|unique|list %}
-                {{ dates|length }}
-            </div>
+            <div class="metric-value">{{ metrics.days_tracked }}</div>
             <div class="metric-label">Days Tracked</div>
         </div>
     </div>
 </div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="metric-value">{{ metrics.avg_amount }}ml</div>
+            <div class="metric-label">Avg Amount</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="metric-value">{{ metrics.weekly_avg_feed }}</div>
+            <div class="metric-label">Weekly Avg Feed</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="metric-value">{{ metrics.breast_feed_percentage }}%</div>
+            <div class="metric-label">Breast Feed %</div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Feeding Chart -->
 <div class="chart-container">
@@ -151,11 +155,17 @@ if (!feedingData || feedingData.length === 0) {
     // Group by date and sum amounts
     const dailyTotals = {};
     feedingData.forEach(feed => {
-        if (feed.date && typeof feed.amount === 'number') {
+        if (feed.date) {
+            // Convert amount to number if it's a string
+            let amount = 0;
+            if (feed.amount !== null && feed.amount !== undefined) {
+                amount = typeof feed.amount === 'number' ? feed.amount : parseFloat(feed.amount) || 0;
+            }
+
             if (!dailyTotals[feed.date]) {
                 dailyTotals[feed.date] = 0;
             }
-            dailyTotals[feed.date] += feed.amount || 0;
+            dailyTotals[feed.date] += amount;
         }
     });
 
@@ -168,8 +178,8 @@ if (!feedingData || feedingData.length === 0) {
     console.log('Chart labels:', labels);
     console.log('Chart data:', data);
 
-    // Only create chart if we have valid data
-    if (labels.length > 0 && data.some(value => value > 0)) {
+    // Only create chart if we have valid data (allow zero values for days with no feeding)
+    if (labels.length > 0) {
         // Create chart
         const ctx = document.getElementById('feedingChart').getContext('2d');
         new Chart(ctx, {

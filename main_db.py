@@ -288,16 +288,44 @@ def analytics():
         if not feeding_rows:
             return render_template('analytics_simple.html', error="No feeding activities found. Add some feeding activities first.")
 
-        # Process feeding data for chart
+        # Process feeding data for chart and calculate metrics
         feeding_data = []
+        breast_feeds = 0
+        total_amount = 0
+        valid_amounts = []
+        dates_set = set()
+
+        # Import feeding type classifier
+        from app.whatsapp_parser import WhatsAppParser
+        parser = WhatsAppParser()
+
         for row in feeding_rows:
             try:
-                feeding_data.append({
+                # Convert amount to float, ensure it's a number
+                amount = 0
+                if row['amount'] is not None:
+                    amount = float(row['amount']) if row['amount'] != '' else 0
+
+                # Classify feeding type
+                feeding_type = parser._determine_feeding_type(row['description'] or '')
+                if feeding_type == 'breast':
+                    breast_feeds += 1
+
+                feeding_record = {
                     'date': row['timestamp'].strftime('%Y-%m-%d'),
                     'time': row['timestamp'].strftime('%H:%M'),
-                    'amount': row['amount'] or 0,
-                    'description': row['description']
-                })
+                    'amount': amount,
+                    'description': row['description'],
+                    'feeding_type': feeding_type
+                }
+                feeding_data.append(feeding_record)
+
+                # Collect data for metrics
+                if amount > 0:
+                    total_amount += amount
+                    valid_amounts.append(amount)
+                dates_set.add(feeding_record['date'])
+
             except Exception as e:
                 logger.warning(f"Error processing feeding row: {e}")
                 continue
@@ -305,9 +333,30 @@ def analytics():
         # Sort by timestamp
         feeding_data.sort(key=lambda x: x['date'] + ' ' + x['time'])
 
-        logger.info(f"Processed {len(feeding_data)} feeding records for chart")
+        # Calculate metrics
+        total_feeds = len(feeding_data)
+        days_tracked = len(dates_set)
+        avg_amount = sum(valid_amounts) / len(valid_amounts) if valid_amounts else 0
+        daily_avg_feed = total_feeds / days_tracked if days_tracked > 0 else 0
+        frequency = daily_avg_feed  # Same as daily average
+        weekly_avg_feed = total_feeds / (days_tracked / 7) if days_tracked > 0 else 0
+        breast_feed_percentage = (breast_feeds / total_feeds * 100) if total_feeds > 0 else 0
 
-        return render_template('analytics_simple.html', feeding_data=feeding_data)
+        metrics = {
+            'daily_avg_feed': round(daily_avg_feed, 1),
+            'frequency': round(frequency, 1),
+            'days_tracked': days_tracked,
+            'avg_amount': round(avg_amount, 1),
+            'weekly_avg_feed': round(weekly_avg_feed, 1),
+            'breast_feed_percentage': round(breast_feed_percentage, 1),
+            'total_feeds': total_feeds,
+            'total_amount': round(total_amount, 1)
+        }
+
+        logger.info(f"Processed {len(feeding_data)} feeding records")
+        logger.info(f"Calculated metrics: {metrics}")
+
+        return render_template('analytics_simple.html', feeding_data=feeding_data, metrics=metrics)
 
     except Exception as e:
         logger.error(f"Error in simple analytics: {e}")
