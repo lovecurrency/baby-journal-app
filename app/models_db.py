@@ -390,10 +390,61 @@ class ActivityJournal:
             return {}
 
         try:
-            return self.db.get_activity_statistics(self.profile.id)
+            # Try database statistics first
+            db_stats = self.db.get_activity_statistics(self.profile.id)
+            if db_stats and db_stats.get('total_activities', 0) > 0:
+                logger.info(f"Database statistics successful: {db_stats}")
+                return db_stats
+            else:
+                logger.warning("Database statistics returned empty, falling back to activity cache calculation")
+                # Fallback to calculating from loaded activities (like original version)
+                return self._calculate_statistics_from_activities()
         except Exception as e:
-            logger.error(f"Error getting statistics: {e}")
+            logger.error(f"Error getting database statistics: {e}, falling back to activity cache")
+            return self._calculate_statistics_from_activities()
+
+    def _calculate_statistics_from_activities(self) -> Dict:
+        """Calculate statistics from loaded activities (fallback method)."""
+        if not self.activities:
+            logger.warning("No activities loaded for statistics calculation")
             return {}
+
+        logger.info(f"Calculating statistics from {len(self.activities)} loaded activities")
+
+        stats = {
+            'total_activities': len(self.activities),
+            'by_category': {},
+            'by_type': {},
+            'daily_averages': {},
+            'date_range': {}
+        }
+
+        # Count by category and type
+        for activity in self.activities:
+            try:
+                category = activity.category.value if activity.category else 'unknown'
+                activity_type = activity.activity_type.value if activity.activity_type else 'unknown'
+
+                stats['by_category'][category] = stats['by_category'].get(category, 0) + 1
+                stats['by_type'][activity_type] = stats['by_type'].get(activity_type, 0) + 1
+            except Exception as e:
+                logger.warning(f"Error processing activity for stats: {e}")
+                continue
+
+        # Calculate date range
+        if self.activities:
+            try:
+                timestamps = [a.timestamp for a in self.activities if a.timestamp]
+                if timestamps:
+                    stats['date_range'] = {
+                        'start': min(timestamps).isoformat(),
+                        'end': max(timestamps).isoformat()
+                    }
+            except Exception as e:
+                logger.warning(f"Error calculating date range: {e}")
+
+        logger.info(f"Calculated statistics: {stats}")
+        return stats
 
     def get_activity_by_id(self, activity_id: str) -> Optional[BabyActivity]:
         """Get activity by ID."""

@@ -274,6 +274,9 @@ def analytics():
 
         # Get statistics
         stats = journal.get_statistics()
+        logger.info(f"Analytics - Statistics returned: {stats}")
+        logger.info(f"Analytics - Journal has {len(journal.activities)} activities loaded")
+        logger.info(f"Analytics - Profile exists: {journal.profile is not None}")
 
         # Prepare data for charts (restored to original simple approach)
         if journal.activities:
@@ -359,6 +362,16 @@ def analytics():
                 if daily_totals:
                     feeding_insights['daily_avg_total'] = round(sum(daily_totals) / len(daily_totals), 1)
                     feeding_insights['weekly_avg_total'] = round(sum(daily_totals), 1)
+
+                # Calculate average gap between feedings
+                if len(feeding_activities) > 1:
+                    sorted_feeds = sorted(feeding_activities, key=lambda x: x.timestamp)
+                    gaps = []
+                    for i in range(1, len(sorted_feeds)):
+                        gap_hours = (sorted_feeds[i].timestamp - sorted_feeds[i-1].timestamp).total_seconds() / 3600
+                        gaps.append(gap_hours)
+                    if gaps:
+                        feeding_insights['avg_gap_hours'] = round(sum(gaps) / len(gaps), 1)
 
             # Calculate sleep insights (with safe property access)
             sleep_activities = []
