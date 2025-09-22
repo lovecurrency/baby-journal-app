@@ -72,21 +72,39 @@ class BabyActivity:
     @classmethod
     def from_db_row(cls, row: Dict) -> 'BabyActivity':
         """Create activity from database row."""
-        return cls(
-            id=str(row['id']),
-            profile_id=str(row['profile_id']),
-            timestamp=row['timestamp'],
-            category=ActivityCategory(row['category']),
-            activity_type=ActivityType(row['activity_type']),
-            description=row['description'],
-            amount=row['amount'],
-            unit=row['unit'],
-            duration_minutes=row['duration_minutes'],
-            notes=row['notes'],
-            tags=row['tags'] or [],
-            source=row['source'],
-            sender=row['sender']
-        )
+        try:
+            # Try to convert category and activity_type with fallback to OTHER
+            try:
+                category = ActivityCategory(row['category'])
+            except (ValueError, KeyError):
+                logger.warning(f"Invalid category '{row.get('category')}' for activity {row.get('id')}, using OTHER")
+                category = ActivityCategory.OTHER
+
+            try:
+                activity_type = ActivityType(row['activity_type'])
+            except (ValueError, KeyError):
+                logger.warning(f"Invalid activity_type '{row.get('activity_type')}' for activity {row.get('id')}, using OTHER")
+                activity_type = ActivityType.OTHER
+
+            return cls(
+                id=str(row['id']),
+                profile_id=str(row['profile_id']),
+                timestamp=row['timestamp'],
+                category=category,
+                activity_type=activity_type,
+                description=row['description'],
+                amount=row['amount'],
+                unit=row['unit'],
+                duration_minutes=row['duration_minutes'],
+                notes=row['notes'],
+                tags=row['tags'] or [],
+                source=row['source'],
+                sender=row['sender']
+            )
+        except Exception as e:
+            logger.error(f"Failed to create activity from database row: {e}")
+            logger.error(f"Row data: {row}")
+            raise
 
     def save(self) -> bool:
         """Save activity to database."""

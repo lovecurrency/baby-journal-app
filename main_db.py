@@ -264,53 +264,61 @@ def activities():
 @app.route('/analytics')
 def analytics():
     """Enhanced analytics and visualizations page."""
-    # Load profile and activities into cache (like original working version)
-    if not journal.profile:
-        journal.load_profile()
+    try:
+        # Load profile and activities into cache (like original working version)
+        if not journal.profile:
+            journal.load_profile()
 
-    if journal.profile:
-        journal.load_activities()  # Populate journal.activities cache
+        if journal.profile:
+            journal.load_activities()  # Populate journal.activities cache
 
-    # Get statistics
-    stats = journal.get_statistics()
+        # Get statistics
+        stats = journal.get_statistics()
 
-    # Prepare data for charts (restored to original simple approach)
-    if journal.activities:
-        # Activities by hour of day
-        hour_distribution = [0] * 24
-        for activity in journal.activities:
-            hour = activity.timestamp.hour
-            hour_distribution[hour] += 1
+        # Prepare data for charts (restored to original simple approach)
+        if journal.activities:
+            # Activities by hour of day
+            hour_distribution = [0] * 24
+            for activity in journal.activities:
+                hour = activity.timestamp.hour
+                hour_distribution[hour] += 1
 
-        # Activities by day of week
-        weekday_distribution = [0] * 7
-        for activity in journal.activities:
-            weekday = activity.timestamp.weekday()
-            weekday_distribution[weekday] += 1
+            # Activities by day of week
+            weekday_distribution = [0] * 7
+            for activity in journal.activities:
+                weekday = activity.timestamp.weekday()
+                weekday_distribution[weekday] += 1
 
-        # Recent 7 days trend
-        today = datetime.now().date()
-        daily_counts = []
-        for i in range(6, -1, -1):
-            date = today - timedelta(days=i)
-            count = len([a for a in journal.activities if a.timestamp.date() == date])
-            daily_counts.append({
-                'date': date.strftime('%m/%d'),
-                'count': count
-            })
+            # Recent 7 days trend
+            today = datetime.now().date()
+            daily_counts = []
+            for i in range(6, -1, -1):
+                date = today - timedelta(days=i)
+                count = len([a for a in journal.activities if a.timestamp.date() == date])
+                daily_counts.append({
+                    'date': date.strftime('%m/%d'),
+                    'count': count
+                })
 
-        # Calculate feeding insights
-        feeding_activities = [a for a in journal.activities if a.category.value == 'feeding']
-        feeding_insights = {
+            # Calculate feeding insights (with safe property access)
+            feeding_activities = []
+            for a in journal.activities:
+                try:
+                    if hasattr(a, 'category') and a.category and a.category.value == 'feeding':
+                        feeding_activities.append(a)
+                except Exception as e:
+                    logger.warning(f"Skipping activity due to category access error: {e}")
+                    continue
+            feeding_insights = {
             'avg_amount': 0,
             'avg_gap_hours': 0,
             'bottle_percentage': 0,
             'daily_trend': [],
             'daily_avg_total': 0,
             'weekly_avg_total': 0
-        }
+            }
 
-        if feeding_activities:
+            if feeding_activities:
             # Average amount
             amounts = [a.amount for a in feeding_activities if a.amount]
             if amounts:
@@ -328,8 +336,14 @@ def analytics():
                     'count': len(day_feedings)
                 })
 
-            # Bottle percentage
-            bottle_feeds = len([a for a in feeding_activities if 'bottle' in a.activity_type.value])
+            # Bottle percentage (with safe access)
+                bottle_feeds = 0
+                for a in feeding_activities:
+                    try:
+                        if hasattr(a, 'activity_type') and a.activity_type and 'bottle' in a.activity_type.value:
+                            bottle_feeds += 1
+                    except Exception:
+                        continue
             feeding_insights['bottle_percentage'] = round((bottle_feeds / len(feeding_activities)) * 100, 1)
 
             # Daily and weekly average totals
@@ -346,9 +360,16 @@ def analytics():
                 feeding_insights['daily_avg_total'] = round(sum(daily_totals) / len(daily_totals), 1)
                 feeding_insights['weekly_avg_total'] = round(sum(daily_totals), 1)
 
-        # Calculate sleep insights
-        sleep_activities = [a for a in journal.activities if a.category.value == 'sleep']
-        sleep_insights = {
+            # Calculate sleep insights (with safe property access)
+            sleep_activities = []
+            for a in journal.activities:
+                try:
+                    if hasattr(a, 'category') and a.category and a.category.value == 'sleep':
+                        sleep_activities.append(a)
+                except Exception as e:
+                    logger.warning(f"Skipping activity due to category access error: {e}")
+                    continue
+            sleep_insights = {
             'total_daily_sleep': 0,
             'night_sleep_avg': 0,
             'nap_count': 0,
@@ -356,9 +377,9 @@ def analytics():
             'sleep_pattern': [],
             'day_sleep_avg': 0,
             'daily_trend': []
-        }
+            }
 
-        if sleep_activities:
+            if sleep_activities:
             # Calculate average daily sleep
             durations = [a.duration_minutes for a in sleep_activities if a.duration_minutes]
             if durations:
@@ -385,8 +406,8 @@ def analytics():
 
                 sleep_insights['day_sleep_avg'] = round(day_sleep_minutes / 60, 1)
 
-        # Generate dynamic insights if insights generator is available
-        try:
+            # Generate dynamic insights if insights generator is available
+            try:
             insights_generator = InsightsGenerator(journal.activities)
             feeding_dynamic_insights = insights_generator.generate_feeding_insights()
             sleep_dynamic_insights = insights_generator.generate_sleep_insights()
@@ -395,7 +416,7 @@ def analytics():
             feeding_dynamic_insights = []
             sleep_dynamic_insights = []
 
-        chart_data = {
+            chart_data = {
             'hourly': hour_distribution,
             'weekday': weekday_distribution,
             'daily_trend': daily_counts,
@@ -403,13 +424,23 @@ def analytics():
             'sleep_insights': sleep_insights,
             'feeding_dynamic_insights': feeding_dynamic_insights,
             'sleep_dynamic_insights': sleep_dynamic_insights
-        }
-    else:
-        chart_data = None
+            }
+        else:
+            chart_data = None
 
-    return render_template('analytics_enhanced.html',
-                         statistics=stats,
-                         chart_data=chart_data)
+        return render_template('analytics_enhanced.html',
+                             statistics=stats,
+                             chart_data=chart_data)
+
+    except Exception as e:
+        logger.error(f"Error in analytics route: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+
+        # Return safe fallback
+        return render_template('analytics_enhanced.html',
+                             statistics={},
+                             chart_data=None)
 
 
 @app.route('/debug')
