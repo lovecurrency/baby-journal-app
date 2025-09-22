@@ -4,7 +4,7 @@ Activity processor to convert WhatsApp messages to structured activities.
 
 from datetime import datetime
 from typing import Dict, Optional, List
-from app.models import BabyActivity, ActivityCategory, ActivityType
+from app.models_db import BabyActivity, ActivityCategory, ActivityType
 from app.whatsapp_parser import WhatsAppParser
 import re
 

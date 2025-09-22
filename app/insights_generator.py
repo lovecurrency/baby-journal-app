@@ -6,7 +6,7 @@ Uses rule-based analytics to generate personalized insights.
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 from statistics import stdev, mean
-from app.models import BabyActivity, ActivityCategory, ActivityType
+from app.models_db import BabyActivity, ActivityCategory, ActivityType
 
 
 class InsightsGenerator:
