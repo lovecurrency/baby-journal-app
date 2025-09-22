@@ -276,19 +276,35 @@ def analytics():
         try:
             logger.info("Getting recent activities for analytics")
 
-            # First check if profile is loaded
-            if not journal.profile:
-                logger.warning("No profile found in journal, attempting to load")
-                journal.load_profile()
-                if journal.profile:
-                    logger.info(f"Profile loaded: {journal.profile.name} (ID: {journal.profile.id})")
-                else:
-                    logger.error("No profile could be loaded - this will prevent activities retrieval")
-            else:
-                logger.info(f"Profile already loaded: {journal.profile.name} (ID: {journal.profile.id})")
+            # Force reload profile from database - don't rely on session
+            logger.info("Force reloading profile from database for analytics")
+            journal.load_profile()
 
-            recent_activities = journal.get_recent_activities(limit=1000)
-            logger.info(f"Retrieved {len(recent_activities)} recent activities")
+            if journal.profile:
+                logger.info(f"Profile loaded successfully: {journal.profile.name} (ID: {journal.profile.id})")
+            else:
+                logger.error("No profile could be loaded from database")
+                # Try direct database query as fallback
+                try:
+                    logger.info("Attempting direct database query for profile")
+                    db = get_db_service()
+                    profile_data = db.get_profile()
+                    if profile_data:
+                        logger.info(f"Found profile via direct query: {profile_data['name']} (ID: {profile_data['id']})")
+                        from app.models_db import BabyProfile
+                        journal.profile = BabyProfile.from_db_row(profile_data)
+                        logger.info(f"Profile loaded via direct query: {journal.profile.name}")
+                    else:
+                        logger.error("No profile found even with direct database query")
+                except Exception as direct_e:
+                    logger.error(f"Direct database query also failed: {direct_e}")
+
+            if journal.profile:
+                recent_activities = journal.get_recent_activities(limit=1000)
+                logger.info(f"Retrieved {len(recent_activities)} recent activities")
+            else:
+                logger.error("Cannot get activities - no profile available")
+                recent_activities = []
 
             # Log some details about the activities if any exist
             if recent_activities:
@@ -562,6 +578,129 @@ def analytics():
         except Exception as template_error:
             logger.error(f"Error rendering error template: {template_error}")
             return f"Analytics temporarily unavailable. Error: {str(e)}", 500
+
+
+@app.route('/debug')
+def debug_dashboard():
+    """Debug dashboard to show database connectivity and data status."""
+    try:
+        debug_info = {
+            'database_status': 'Unknown',
+            'profile_info': {},
+            'activity_summary': {},
+            'sample_activities': [],
+            'errors': []
+        }
+
+        # Test database connectivity
+        try:
+            db = get_db_service()
+            debug_info['database_status'] = 'Connected'
+        except Exception as e:
+            debug_info['database_status'] = f'Failed: {str(e)}'
+            debug_info['errors'].append(f"Database connection error: {e}")
+
+        # Get profile information
+        try:
+            profile_data = db.get_profile()
+            if profile_data:
+                debug_info['profile_info'] = {
+                    'id': profile_data['id'],
+                    'name': profile_data['name'],
+                    'birth_date': str(profile_data['birth_date']),
+                    'gender': profile_data['gender'],
+                    'created_at': str(profile_data['created_at'])
+                }
+            else:
+                debug_info['profile_info'] = {'status': 'No profile found'}
+        except Exception as e:
+            debug_info['errors'].append(f"Profile query error: {e}")
+
+        # Get activity summary
+        try:
+            if profile_data:
+                activities = db.get_activities(profile_data['id'], limit=100)
+                debug_info['activity_summary'] = {
+                    'total_count': len(activities),
+                    'categories': {},
+                    'date_range': {}
+                }
+
+                if activities:
+                    # Category breakdown
+                    for activity in activities:
+                        cat = activity.get('category', 'unknown')
+                        debug_info['activity_summary']['categories'][cat] = debug_info['activity_summary']['categories'].get(cat, 0) + 1
+
+                    # Date range
+                    timestamps = [a['timestamp'] for a in activities if a.get('timestamp')]
+                    if timestamps:
+                        debug_info['activity_summary']['date_range'] = {
+                            'earliest': str(min(timestamps)),
+                            'latest': str(max(timestamps))
+                        }
+
+                    # Sample activities (first 5)
+                    debug_info['sample_activities'] = [
+                        {
+                            'id': a.get('id', 'N/A'),
+                            'timestamp': str(a.get('timestamp', 'N/A')),
+                            'category': a.get('category', 'N/A'),
+                            'activity_type': a.get('activity_type', 'N/A'),
+                            'description': a.get('description', 'N/A')[:100],
+                            'amount': a.get('amount'),
+                            'unit': a.get('unit')
+                        }
+                        for a in activities[:5]
+                    ]
+        except Exception as e:
+            debug_info['errors'].append(f"Activity query error: {e}")
+
+        # Test journal loading
+        try:
+            journal.load_profile()
+            if journal.profile:
+                debug_info['journal_profile_status'] = f"Loaded: {journal.profile.name}"
+                journal_activities = journal.get_recent_activities(limit=10)
+                debug_info['journal_activities_count'] = len(journal_activities)
+            else:
+                debug_info['journal_profile_status'] = "Not loaded"
+                debug_info['journal_activities_count'] = 0
+        except Exception as e:
+            debug_info['errors'].append(f"Journal loading error: {e}")
+
+        return f"""
+        <html>
+        <head><title>Debug Dashboard</title></head>
+        <body style="font-family: monospace; margin: 20px;">
+        <h1>Baby Journal Debug Dashboard</h1>
+
+        <h2>Database Status</h2>
+        <p><strong>Connection:</strong> {debug_info['database_status']}</p>
+
+        <h2>Profile Information</h2>
+        <pre>{debug_info['profile_info']}</pre>
+
+        <h2>Activity Summary</h2>
+        <pre>{debug_info['activity_summary']}</pre>
+
+        <h2>Journal Loading Status</h2>
+        <p><strong>Profile:</strong> {debug_info.get('journal_profile_status', 'Unknown')}</p>
+        <p><strong>Activities Count:</strong> {debug_info.get('journal_activities_count', 'Unknown')}</p>
+
+        <h2>Sample Activities</h2>
+        <pre>{debug_info['sample_activities']}</pre>
+
+        <h2>Errors</h2>
+        <pre>{debug_info['errors']}</pre>
+
+        <p><a href="/">← Back to Home</a> | <a href="/analytics">Analytics Page</a></p>
+        </body>
+        </html>
+        """
+
+    except Exception as e:
+        return f"Debug dashboard error: {str(e)}", 500
 
 
 @app.route('/api/activity', methods=['POST'])

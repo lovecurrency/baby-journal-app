@@ -220,10 +220,58 @@ class WhatsAppParser:
 
         return datetime.combine(date_part, time_part)
 
+    def _is_whatsapp_meta_message(self, text: str) -> bool:
+        """Check if message is a WhatsApp system/meta message that should be ignored."""
+        text_lower = text.lower()
+
+        # WhatsApp system message patterns
+        meta_patterns = [
+            # Group management
+            r'you created group',
+            r'you changed the group name',
+            r'you changed this group\'s icon',
+            r'added you',
+            r'left the group',
+            r'removed from the group',
+            r'group description changed',
+
+            # Media and links that aren't baby related
+            r'^https?://',  # URLs by themselves
+            r'omitted',     # WhatsApp media omitted messages
+            r'document omitted',
+            r'image omitted',
+            r'video omitted',
+            r'audio omitted',
+
+            # System notifications
+            r'messages and calls are end-to-end encrypted',
+            r'security code changed',
+            r'missed voice call',
+            r'missed video call',
+
+            # Empty or very short messages that aren't meaningful
+            r'^[^a-zA-Z0-9]*$',  # Only symbols/punctuation
+            r'^[0-9\s]*$',       # Only numbers and spaces
+        ]
+
+        for pattern in meta_patterns:
+            if re.search(pattern, text_lower):
+                return True
+
+        # Additional check for very short messages without baby activity keywords
+        if len(text.strip()) < 5:  # Very short messages
+            return True
+
+        return False
+
     def _parse_message_for_activity(self, msg_data: Dict) -> Optional[Dict]:
         """Extract activity information from a parsed message."""
         text = msg_data['text'].lower()
         original_text = msg_data['text']
+
+        # Filter out WhatsApp meta-messages and system notifications
+        if self._is_whatsapp_meta_message(original_text):
+            return None
 
         for activity_type, config in self.ACTIVITY_PATTERNS.items():
             for keyword in config['keywords']:
