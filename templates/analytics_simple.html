@@ -60,14 +60,14 @@
 <div class="row mb-4">
     <div class="col-md-4">
         <div class="metric-card">
-            <div class="metric-value">{{ metrics.daily_avg_feed }}</div>
-            <div class="metric-label">Daily Avg Feed</div>
+            <div class="metric-value">{{ metrics.daily_avg_feed }}ml</div>
+            <div class="metric-label">Daily Avg Amount</div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="metric-card">
             <div class="metric-value">{{ metrics.frequency }}</div>
-            <div class="metric-label">Frequency</div>
+            <div class="metric-label">Frequency (feeds/day)</div>
         </div>
     </div>
     <div class="col-md-4">
@@ -87,8 +87,8 @@
     </div>
     <div class="col-md-4">
         <div class="metric-card">
-            <div class="metric-value">{{ metrics.weekly_avg_feed }}</div>
-            <div class="metric-label">Weekly Avg Feed</div>
+            <div class="metric-value">{{ metrics.weekly_avg_feed }}ml</div>
+            <div class="metric-label">Weekly Avg Amount</div>
         </div>
     </div>
     <div class="col-md-4">
@@ -119,10 +119,12 @@
                     <th>Time</th>
                     <th>Amount</th>
                     <th>Description</th>
+                    <th>Type</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for feed in feeding_data[-10:] %}
+                {% for feed in feeding_data[-10:]|reverse %}
                 <tr>
                     <td>{{ feed.date }}</td>
                     <td>{{ feed.time }}</td>
@@ -134,6 +136,22 @@
                         {% endif %}
                     </td>
                     <td>{{ feed.description }}</td>
+                    <td>
+                        {% if feed.feeding_type == 'breast' %}
+                            <span class="badge bg-success">Breast</span>
+                        {% elif feed.feeding_type == 'bottle' %}
+                            <span class="badge bg-info">Bottle</span>
+                        {% elif feed.feeding_type == 'formula' %}
+                            <span class="badge bg-warning">Formula</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ feed.feeding_type|title }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('edit_activity', activity_id=feed.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

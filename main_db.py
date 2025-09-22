@@ -338,6 +338,7 @@ def analytics():
                     breast_feeds += 1
 
                 feeding_record = {
+                    'id': str(row['id']),  # Add activity ID for editing
                     'date': row['timestamp'].strftime('%Y-%m-%d'),
                     'time': row['timestamp'].strftime('%H:%M'),
                     'amount': amount,
@@ -363,17 +364,17 @@ def analytics():
         total_feeds = len(feeding_data)
         days_tracked = len(dates_set)
         avg_amount = sum(valid_amounts) / len(valid_amounts) if valid_amounts else 0
-        daily_avg_feed = total_feeds / days_tracked if days_tracked > 0 else 0
-        frequency = daily_avg_feed  # Same as daily average
-        weekly_avg_feed = total_feeds / (days_tracked / 7) if days_tracked > 0 else 0
+        daily_avg_amount = total_amount / days_tracked if days_tracked > 0 else 0  # ml per day
+        frequency = total_feeds / days_tracked if days_tracked > 0 else 0  # feeds per day
+        weekly_avg_amount = total_amount / (days_tracked / 7) if days_tracked > 0 else 0  # ml per week
         breast_feed_percentage = (breast_feeds / total_feeds * 100) if total_feeds > 0 else 0
 
         metrics = {
-            'daily_avg_feed': round(daily_avg_feed, 1),
-            'frequency': round(frequency, 1),
+            'daily_avg_feed': round(daily_avg_amount, 1),  # ml per day
+            'frequency': round(frequency, 1),  # feeds per day
             'days_tracked': days_tracked,
             'avg_amount': round(avg_amount, 1),
-            'weekly_avg_feed': round(weekly_avg_feed, 1),
+            'weekly_avg_feed': round(weekly_avg_amount, 1),  # ml per week
             'breast_feed_percentage': round(breast_feed_percentage, 1),
             'total_feeds': total_feeds,
             'total_amount': round(total_amount, 1)
