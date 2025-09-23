@@ -775,15 +775,29 @@ def api_create_profile():
     try:
         birth_date = datetime.fromisoformat(data['birth_date'])
 
-        profile = BabyProfile(
-            name=data['name'],
-            birth_date=birth_date,
-            gender=data.get('gender'),
-            birth_weight=data.get('birth_weight'),
-            birth_height=data.get('birth_height')
-        )
+        # Check if profile already exists
+        if not journal.profile:
+            journal.load_profile()
 
-        journal.profile = profile
+        if journal.profile:
+            # Update existing profile
+            journal.profile.name = data['name']
+            journal.profile.birth_date = birth_date
+            journal.profile.gender = data.get('gender')
+            journal.profile.birth_weight = data.get('birth_weight')
+            journal.profile.birth_height = data.get('birth_height')
+            profile = journal.profile
+        else:
+            # Create new profile only if none exists
+            profile = BabyProfile(
+                name=data['name'],
+                birth_date=birth_date,
+                gender=data.get('gender'),
+                birth_weight=data.get('birth_weight'),
+                birth_height=data.get('birth_height')
+            )
+            journal.profile = profile
+
         journal.save_profile()
 
         return jsonify({
@@ -792,6 +806,44 @@ def api_create_profile():
         })
     except Exception as e:
         logger.error(f"Error creating profile: {e}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/debug/profiles', methods=['GET'])
+def api_debug_profiles():
+    """Debug endpoint to see all profiles and their activity counts."""
+    try:
+        from app.database import get_db_service
+        db = get_db_service()
+
+        # Get all profiles
+        profiles_query = "SELECT * FROM baby_profiles ORDER BY created_at DESC"
+        profiles = db.execute_query(profiles_query)
+
+        result = []
+        for profile_row in profiles:
+            profile_id = profile_row[0]  # Assuming id is first column
+            profile_name = profile_row[1]  # Assuming name is second column
+
+            # Count activities for this profile
+            activities_count = len(db.get_activities(profile_id))
+
+            result.append({
+                'id': profile_id,
+                'name': profile_name,
+                'activities_count': activities_count,
+                'profile_data': dict(zip([desc[0] for desc in db.cursor.description], profile_row))
+            })
+
+        return jsonify({
+            'success': True,
+            'profiles': result
+        })
+    except Exception as e:
+        logger.error(f"Error getting debug profiles: {e}")
         return jsonify({
             'success': False,
             'message': str(e)
