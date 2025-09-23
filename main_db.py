@@ -842,8 +842,8 @@ def api_get_analytics_data():
         journal.load_activities()
 
         # Generate analytics data
-        insights_gen = InsightsGenerator()
-        insights = insights_gen.generate_insights(journal)
+        insights_gen = InsightsGenerator(journal.activities)
+        insights = insights_gen.generate_feeding_insights() + insights_gen.generate_sleep_insights()
 
         # Get activity distribution
         activity_dist = {}
