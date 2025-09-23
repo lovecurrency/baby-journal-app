@@ -848,7 +848,7 @@ def api_get_analytics_data():
         # Get activity distribution
         activity_dist = {}
         for activity in journal.activities:
-            act_type = activity.type
+            act_type = activity.activity_type
             if act_type not in activity_dist:
                 activity_dist[act_type] = 0
             activity_dist[act_type] += 1
