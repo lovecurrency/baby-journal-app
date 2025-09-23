@@ -3,6 +3,7 @@ Flask web application for Baby Activity Journal.
 """
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
+from flask_cors import CORS
 from datetime import datetime, timedelta
 import os
 from werkzeug.utils import secure_filename
@@ -14,6 +15,7 @@ from app.whatsapp_parser import WhatsAppParser
 from app.insights_generator import InsightsGenerator
 
 app = Flask(__name__)
+CORS(app, origins=['http://localhost:3000'])
 app.secret_key = 'your-secret-key-change-in-production'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -510,6 +512,38 @@ def edit_activity(activity_id):
     else:
         flash('Activity not found', 'error')
         return redirect(url_for('activities'))
+
+
+@app.route('/api/activities', methods=['GET'])
+def api_get_activities():
+    """Get all activities via API."""
+    try:
+        # Get query parameters for filtering
+        limit = request.args.get('limit', type=int)
+
+        activities = journal.get_recent_activities(limit=limit) if limit else journal.activities
+
+        # Convert to dict format
+        activities_data = [activity.to_dict() for activity in activities]
+
+        return jsonify(activities_data)
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/profile', methods=['GET'])
+def api_get_profile():
+    """Get baby profile via API."""
+    if journal.profile:
+        return jsonify(journal.profile.to_dict())
+    else:
+        return jsonify({
+            'success': False,
+            'message': 'No profile found'
+        }), 404
 
 
 if __name__ == '__main__':
