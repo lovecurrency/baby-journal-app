@@ -856,57 +856,59 @@ def api_debug_profiles():
 def api_recover_activities():
     """Migrate all activities from old profile to current profile."""
     try:
-        from app.database import get_db_service
-        db = get_db_service()
-
-        # Get current profile
+        # Load profile if not already loaded
         if not journal.profile:
             journal.load_profile()
 
         if not journal.profile:
             return jsonify({
                 'success': False,
-                'message': 'No current profile found'
+                'message': 'No profile found'
             }), 404
 
         current_profile_id = journal.profile.id
 
-        # Get all profiles
-        profiles_query = "SELECT id, created_at FROM baby_profiles ORDER BY created_at ASC"
-        profiles = db.execute_query(profiles_query)
+        # Use direct database access like the working analytics endpoint
+        from app.database import get_db_service
+        db = get_db_service()
 
-        # Find the oldest profile (should be the original one with activities)
-        if len(profiles) < 2:
-            return jsonify({
-                'success': False,
-                'message': 'Only one profile found'
-            }), 400
-
-        old_profile_id = profiles[0]['id']  # Oldest profile
+        # Try to find the old profile with activities (hardcoded old profile ID)
+        old_profile_id = "06156d3a-51d2-4210-86f5-6a8c193c3442"
 
         # Check if old profile has activities
         old_activities = db.get_activities(old_profile_id)
         if not old_activities:
             return jsonify({
                 'success': False,
-                'message': 'No activities found in old profile'
+                'message': f'No activities found in old profile {old_profile_id}'
             }), 400
 
-        # Migrate activities from old profile to current profile
-        migrate_query = "UPDATE baby_activities SET profile_id = %s WHERE profile_id = %s"
-        db.execute_query(migrate_query, (current_profile_id, old_profile_id), fetch=False)
+        # Use direct SQL connection to migrate activities
+        conn = db.get_connection()
+        with conn.cursor() as cursor:
+            # Migrate activities from old profile to current profile
+            cursor.execute(
+                "UPDATE baby_activities SET profile_id = %s WHERE profile_id = %s",
+                (current_profile_id, old_profile_id)
+            )
+            migrated_count = cursor.rowcount
 
-        # Delete the old profile
-        delete_profile_query = "DELETE FROM baby_profiles WHERE id = %s"
-        db.execute_query(delete_profile_query, (old_profile_id,), fetch=False)
+            # Delete the old profile
+            cursor.execute(
+                "DELETE FROM baby_profiles WHERE id = %s",
+                (old_profile_id,)
+            )
+
+            # Commit the transaction
+            conn.commit()
 
         # Reload activities in journal
         journal.load_activities()
 
         return jsonify({
             'success': True,
-            'message': f'Migrated {len(old_activities)} activities from old profile to current profile',
-            'migrated_count': len(old_activities),
+            'message': f'Migrated {migrated_count} activities from old profile to current profile',
+            'migrated_count': migrated_count,
             'old_profile_id': old_profile_id,
             'current_profile_id': current_profile_id
         })
