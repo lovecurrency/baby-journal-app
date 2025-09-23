@@ -820,13 +820,13 @@ def api_debug_profiles():
         db = get_db_service()
 
         # Get all profiles
-        profiles_query = "SELECT * FROM baby_profiles ORDER BY created_at DESC"
+        profiles_query = "SELECT id, name, birth_date, gender, created_at FROM baby_profiles ORDER BY created_at DESC"
         profiles = db.execute_query(profiles_query)
 
         result = []
-        for profile_row in profiles:
-            profile_id = profile_row[0]  # Assuming id is first column
-            profile_name = profile_row[1]  # Assuming name is second column
+        for profile_dict in profiles:
+            profile_id = profile_dict['id']
+            profile_name = profile_dict['name']
 
             # Count activities for this profile
             activities_count = len(db.get_activities(profile_id))
@@ -835,7 +835,9 @@ def api_debug_profiles():
                 'id': profile_id,
                 'name': profile_name,
                 'activities_count': activities_count,
-                'profile_data': dict(zip([desc[0] for desc in db.cursor.description], profile_row))
+                'created_at': profile_dict.get('created_at'),
+                'birth_date': profile_dict.get('birth_date'),
+                'gender': profile_dict.get('gender')
             })
 
         return jsonify({
@@ -844,6 +846,73 @@ def api_debug_profiles():
         })
     except Exception as e:
         logger.error(f"Error getting debug profiles: {e}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/debug/recover-activities', methods=['POST'])
+def api_recover_activities():
+    """Migrate all activities from old profile to current profile."""
+    try:
+        from app.database import get_db_service
+        db = get_db_service()
+
+        # Get current profile
+        if not journal.profile:
+            journal.load_profile()
+
+        if not journal.profile:
+            return jsonify({
+                'success': False,
+                'message': 'No current profile found'
+            }), 404
+
+        current_profile_id = journal.profile.id
+
+        # Get all profiles
+        profiles_query = "SELECT id, created_at FROM baby_profiles ORDER BY created_at ASC"
+        profiles = db.execute_query(profiles_query)
+
+        # Find the oldest profile (should be the original one with activities)
+        if len(profiles) < 2:
+            return jsonify({
+                'success': False,
+                'message': 'Only one profile found'
+            }), 400
+
+        old_profile_id = profiles[0]['id']  # Oldest profile
+
+        # Check if old profile has activities
+        old_activities = db.get_activities(old_profile_id)
+        if not old_activities:
+            return jsonify({
+                'success': False,
+                'message': 'No activities found in old profile'
+            }), 400
+
+        # Migrate activities from old profile to current profile
+        migrate_query = "UPDATE baby_activities SET profile_id = %s WHERE profile_id = %s"
+        db.execute_query(migrate_query, (current_profile_id, old_profile_id), fetch=False)
+
+        # Delete the old profile
+        delete_profile_query = "DELETE FROM baby_profiles WHERE id = %s"
+        db.execute_query(delete_profile_query, (old_profile_id,), fetch=False)
+
+        # Reload activities in journal
+        journal.load_activities()
+
+        return jsonify({
+            'success': True,
+            'message': f'Migrated {len(old_activities)} activities from old profile to current profile',
+            'migrated_count': len(old_activities),
+            'old_profile_id': old_profile_id,
+            'current_profile_id': current_profile_id
+        })
+
+    except Exception as e:
+        logger.error(f"Error recovering activities: {e}")
         return jsonify({
             'success': False,
             'message': str(e)
