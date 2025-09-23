@@ -5,6 +5,7 @@ This version uses Supabase PostgreSQL instead of JSON files.
 
 import os
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
+from flask_cors import CORS
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
@@ -24,6 +25,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+# Configure CORS for Next.js frontend
+CORS(app, origins=[
+    'http://localhost:3000',  # Next.js development server
+    'https://baby-journal.vercel.app',  # Production domain (update when you have it)
+    'https://*.vercel.app'  # Allow all Vercel preview deployments
+])
 app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
@@ -731,6 +739,218 @@ def health_check():
             'status': 'unhealthy',
             'error': str(e),
             'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+# Additional API endpoints for Next.js frontend
+@app.route('/api/profile', methods=['GET'])
+def api_get_profile():
+    """Get baby profile via API."""
+    if not journal.profile:
+        journal.load_profile()
+
+    if journal.profile:
+        return jsonify({
+            'success': True,
+            'profile': journal.profile.to_dict()
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'message': 'No profile found'
+        }), 404
+
+
+@app.route('/api/profile', methods=['POST'])
+def api_create_profile():
+    """Create or update baby profile via API."""
+    data = request.json
+
+    if not data.get('name') or not data.get('birth_date'):
+        return jsonify({
+            'success': False,
+            'message': 'Name and birth_date are required'
+        }), 400
+
+    try:
+        birth_date = datetime.fromisoformat(data['birth_date'])
+
+        profile = BabyProfile(
+            name=data['name'],
+            birth_date=birth_date,
+            gender=data.get('gender'),
+            birth_weight=data.get('birth_weight'),
+            birth_height=data.get('birth_height')
+        )
+
+        journal.profile = profile
+        journal.save_profile()
+
+        return jsonify({
+            'success': True,
+            'profile': profile.to_dict()
+        })
+    except Exception as e:
+        logger.error(f"Error creating profile: {e}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/activities', methods=['GET'])
+def api_get_activities():
+    """Get all activities via API."""
+    try:
+        # Load fresh activities from database
+        if journal.profile:
+            journal.load_activities()
+
+        # Get query parameters for filtering
+        limit = request.args.get('limit', type=int)
+        offset = request.args.get('offset', 0, type=int)
+
+        activities = journal.get_recent_activities(limit=limit) if limit else journal.activities
+
+        # Convert to dict format
+        activities_data = [activity.to_dict() for activity in activities[offset:]]
+
+        return jsonify({
+            'success': True,
+            'activities': activities_data,
+            'total': len(journal.activities)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching activities: {e}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/analytics-data', methods=['GET'])
+def api_get_analytics_data():
+    """Get analytics data for charts via API."""
+    try:
+        if not journal.profile:
+            return jsonify({
+                'success': False,
+                'message': 'No profile found'
+            }), 404
+
+        # Load fresh data
+        journal.load_activities()
+
+        # Generate analytics data
+        insights_gen = InsightsGenerator()
+        insights = insights_gen.generate_insights(journal)
+
+        # Get activity distribution
+        activity_dist = {}
+        for activity in journal.activities:
+            act_type = activity.type
+            if act_type not in activity_dist:
+                activity_dist[act_type] = 0
+            activity_dist[act_type] += 1
+
+        # Get daily patterns
+        daily_patterns = {}
+        for activity in journal.activities:
+            hour = activity.timestamp.hour
+            if hour not in daily_patterns:
+                daily_patterns[hour] = 0
+            daily_patterns[hour] += 1
+
+        return jsonify({
+            'success': True,
+            'statistics': journal.get_statistics(),
+            'insights': insights,
+            'activity_distribution': activity_dist,
+            'daily_patterns': daily_patterns,
+            'recent_activities': [a.to_dict() for a in journal.get_recent_activities(limit=20)]
+        })
+    except Exception as e:
+        logger.error(f"Error generating analytics: {e}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/upload', methods=['POST'])
+def api_upload_whatsapp():
+    """Handle WhatsApp chat upload via API."""
+    if 'file' not in request.files:
+        return jsonify({
+            'success': False,
+            'message': 'No file provided'
+        }), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({
+            'success': False,
+            'message': 'No file selected'
+        }), 400
+
+    if not journal.profile:
+        return jsonify({
+            'success': False,
+            'message': 'Please set up baby profile first'
+        }), 400
+
+    try:
+        if file and file.filename.endswith('.txt'):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+
+            # Parse WhatsApp chat
+            parser = WhatsAppParser()
+            messages = parser.parse_file(filepath)
+
+            # Process messages
+            processor = ActivityProcessor()
+            new_activities = []
+
+            for msg in messages:
+                activities = processor.process_message(msg['message'], msg['timestamp'])
+                for activity in activities:
+                    # Check for duplicates
+                    is_duplicate = False
+                    for existing in journal.activities:
+                        if (existing.timestamp == activity.timestamp and
+                            existing.type == activity.type and
+                            existing.details == activity.details):
+                            is_duplicate = True
+                            break
+
+                    if not is_duplicate:
+                        new_activities.append(activity)
+
+            # Add new activities
+            for activity in new_activities:
+                journal.add_activity(activity)
+
+            # Clean up uploaded file
+            os.remove(filepath)
+
+            return jsonify({
+                'success': True,
+                'message': f'Successfully processed {len(messages)} messages',
+                'activities_added': len(new_activities),
+                'total_activities': len(journal.activities)
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid file format. Please upload a .txt file'
+            }), 400
+    except Exception as e:
+        logger.error(f"Error processing upload: {e}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
         }), 500
 
 
