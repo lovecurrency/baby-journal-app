@@ -841,19 +841,18 @@ def api_get_analytics_data():
         # Load fresh data
         journal.load_activities()
 
-        # Generate analytics data
-        insights_gen = InsightsGenerator(journal.activities)
-        insights = insights_gen.generate_feeding_insights() + insights_gen.generate_sleep_insights()
+        # Get basic statistics
+        stats = journal.get_statistics()
 
-        # Get activity distribution
-        activity_dist = {}
+        # Get activity distribution by type
+        activity_distribution = {}
         for activity in journal.activities:
             act_type = activity.activity_type
-            if act_type not in activity_dist:
-                activity_dist[act_type] = 0
-            activity_dist[act_type] += 1
+            if act_type not in activity_distribution:
+                activity_distribution[act_type] = 0
+            activity_distribution[act_type] += 1
 
-        # Get daily patterns
+        # Get daily patterns (hour of day)
         daily_patterns = {}
         for activity in journal.activities:
             hour = activity.timestamp.hour
@@ -861,16 +860,27 @@ def api_get_analytics_data():
                 daily_patterns[hour] = 0
             daily_patterns[hour] += 1
 
+        # Simple feeding insights
+        feeding_activities = [a for a in journal.activities if a.category == 'feeding']
+        feeding_insights = {
+            'total_feeds': len(feeding_activities),
+            'avg_per_day': len(feeding_activities) / max(1, len(set(a.timestamp.date() for a in journal.activities))),
+            'bottle_feeds': len([a for a in feeding_activities if 'bottle' in a.activity_type]),
+            'breast_feeds': len([a for a in feeding_activities if 'breast' in a.activity_type])
+        }
+
         return jsonify({
             'success': True,
-            'statistics': journal.get_statistics(),
-            'insights': insights,
-            'activity_distribution': activity_dist,
+            'statistics': stats,
+            'activity_distribution': activity_distribution,
             'daily_patterns': daily_patterns,
+            'feeding_insights': feeding_insights,
             'recent_activities': [a.to_dict() for a in journal.get_recent_activities(limit=20)]
         })
     except Exception as e:
         logger.error(f"Error generating analytics: {e}")
+        import traceback
+        logger.error(f"Analytics traceback: {traceback.format_exc()}")
         return jsonify({
             'success': False,
             'message': str(e)
