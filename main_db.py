@@ -830,53 +830,113 @@ def api_get_activities():
 
 @app.route('/api/analytics-data', methods=['GET'])
 def api_get_analytics_data():
-    """Get analytics data for charts via API."""
+    """Get analytics data for charts via API - using proven working logic."""
     try:
+        # Load profile if not already loaded
+        if not journal.profile:
+            journal.load_profile()
+
         if not journal.profile:
             return jsonify({
                 'success': False,
                 'message': 'No profile found'
             }), 404
 
-        # Load fresh data
-        journal.load_activities()
-
-        # Get basic statistics
+        # Get basic statistics using the working method
         stats = journal.get_statistics()
 
-        # Get activity distribution by type
-        activity_distribution = {}
-        for activity in journal.activities:
-            act_type = activity.activity_type
-            if act_type not in activity_distribution:
-                activity_distribution[act_type] = 0
-            activity_distribution[act_type] += 1
+        # Get feeding activities directly from database (same as working /analytics route)
+        from app.database import get_db_service
+        db = get_db_service()
 
-        # Get daily patterns (hour of day)
-        daily_patterns = {}
-        for activity in journal.activities:
-            hour = activity.timestamp.hour
-            if hour not in daily_patterns:
-                daily_patterns[hour] = 0
-            daily_patterns[hour] += 1
+        # Query feeding activities directly
+        feeding_rows = db.get_activities(journal.profile.id, category='feeding')
 
-        # Simple feeding insights
-        feeding_activities = [a for a in journal.activities if a.category == 'feeding']
-        feeding_insights = {
-            'total_feeds': len(feeding_activities),
-            'avg_per_day': len(feeding_activities) / max(1, len(set(a.timestamp.date() for a in journal.activities))),
-            'bottle_feeds': len([a for a in feeding_activities if 'bottle' in a.activity_type]),
-            'breast_feeds': len([a for a in feeding_activities if 'breast' in a.activity_type])
+        if not feeding_rows:
+            return jsonify({
+                'success': True,
+                'statistics': stats,
+                'feeding_data': [],
+                'metrics': {
+                    'total_feeds': 0,
+                    'avg_per_day': 0,
+                    'breast_feed_percentage': 0
+                }
+            })
+
+        # Process feeding data using the proven working logic
+        feeding_data = []
+        breast_feeds = 0
+        total_amount = 0
+        valid_amounts = []
+        dates_set = set()
+
+        # Import feeding type classifier (same as working route)
+        from app.whatsapp_parser import WhatsAppParser
+        parser = WhatsAppParser()
+
+        for row in feeding_rows:
+            try:
+                # Convert amount to float, ensure it's a number
+                amount = 0
+                if row['amount'] is not None:
+                    amount = float(row['amount']) if row['amount'] != '' else 0
+
+                # Classify feeding type
+                feeding_type = parser._determine_feeding_type(row['description'] or '')
+                if feeding_type == 'breast':
+                    breast_feeds += 1
+
+                feeding_record = {
+                    'id': str(row['id']),
+                    'date': row['timestamp'].strftime('%Y-%m-%d'),
+                    'time': row['timestamp'].strftime('%H:%M'),
+                    'amount': amount,
+                    'description': row['description'],
+                    'feeding_type': feeding_type
+                }
+                feeding_data.append(feeding_record)
+
+                # Collect data for metrics
+                if amount > 0:
+                    total_amount += amount
+                    valid_amounts.append(amount)
+                dates_set.add(feeding_record['date'])
+
+            except Exception as e:
+                logger.warning(f"Error processing feeding row: {e}")
+                continue
+
+        # Sort by timestamp
+        feeding_data.sort(key=lambda x: x['date'] + ' ' + x['time'])
+
+        # Calculate metrics (same as working route)
+        total_feeds = len(feeding_data)
+        days_tracked = len(dates_set)
+        avg_amount = sum(valid_amounts) / len(valid_amounts) if valid_amounts else 0
+        daily_avg_amount = total_amount / days_tracked if days_tracked > 0 else 0
+        frequency = total_feeds / days_tracked if days_tracked > 0 else 0
+        weekly_avg_amount = total_amount / (days_tracked / 7) if days_tracked > 0 else 0
+        breast_feed_percentage = (breast_feeds / total_feeds * 100) if total_feeds > 0 else 0
+
+        metrics = {
+            'daily_avg_feed': round(daily_avg_amount, 1),
+            'frequency': round(frequency, 1),
+            'days_tracked': days_tracked,
+            'avg_amount': round(avg_amount, 1),
+            'weekly_avg_feed': round(weekly_avg_amount, 1),
+            'breast_feed_percentage': round(breast_feed_percentage, 1),
+            'total_feeds': total_feeds,
+            'total_amount': round(total_amount, 1)
         }
 
         return jsonify({
             'success': True,
             'statistics': stats,
-            'activity_distribution': activity_distribution,
-            'daily_patterns': daily_patterns,
-            'feeding_insights': feeding_insights,
-            'recent_activities': [a.to_dict() for a in journal.get_recent_activities(limit=20)]
+            'feeding_data': feeding_data,
+            'metrics': metrics
         })
+
     except Exception as e:
         logger.error(f"Error generating analytics: {e}")
         import traceback
