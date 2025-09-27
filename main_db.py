@@ -395,13 +395,22 @@ def analytics():
         # Sort by timestamp
         feeding_data.sort(key=lambda x: x['date'] + ' ' + x['time'])
 
-        # Calculate metrics
+        # Calculate metrics with improved error handling and documentation
         total_feeds = len(feeding_data)
         days_tracked = len(dates_set)
+
+        # Calculate average amount per feed with validation
         avg_amount = sum(valid_amounts) / len(valid_amounts) if valid_amounts else 0
-        daily_avg_amount = total_amount / days_tracked if days_tracked > 0 else 0  # ml per day
-        frequency = total_feeds / days_tracked if days_tracked > 0 else 0  # feeds per day
-        weekly_avg_amount = total_amount / (days_tracked / 7) if days_tracked > 0 else 0  # ml per week
+
+        # Calculate daily and weekly metrics (with division by zero protection)
+        if days_tracked > 0:
+            daily_avg_amount = total_amount / days_tracked  # ml per day
+            frequency = total_feeds / days_tracked  # feeds per day
+            weekly_avg_amount = total_amount / (days_tracked / 7)  # ml per week
+        else:
+            daily_avg_amount = frequency = weekly_avg_amount = 0
+
+        # Calculate breastfeeding percentage
         breast_feed_percentage = (breast_feeds / total_feeds * 100) if total_feeds > 0 else 0
 
         metrics = {
@@ -1172,6 +1181,46 @@ def api_upload_whatsapp():
             'success': False,
             'message': str(e)
         }), 500
+
+
+def validate_activity_input(message, sender=None):
+    """
+    Validate user input for activity processing.
+
+    Args:
+        message: The activity message text
+        sender: Optional sender name
+
+    Returns:
+        dict: Validation result with success flag and errors
+    """
+    errors = []
+
+    # Check message length
+    if not message or len(message.strip()) < 2:
+        errors.append("Message is too short")
+
+    if len(message) > 500:
+        errors.append("Message is too long (max 500 characters)")
+
+    # Basic security check - prevent script injection
+    dangerous_patterns = ['<script', 'javascript:', 'onload=', 'onerror=']
+    message_lower = message.lower()
+    for pattern in dangerous_patterns:
+        if pattern in message_lower:
+            errors.append("Invalid characters detected")
+            break
+
+    # Validate sender if provided
+    if sender and len(sender) > 50:
+        errors.append("Sender name too long")
+
+    return {
+        'success': len(errors) == 0,
+        'errors': errors,
+        'sanitized_message': message.strip() if message else '',
+        'sanitized_sender': sender.strip() if sender else None
+    }
 
 
 if __name__ == '__main__':
