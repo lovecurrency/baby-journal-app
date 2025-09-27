@@ -10,38 +10,73 @@
     </a>
 </div>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <form method="GET" action="{{ url_for('activities') }}" class="d-flex gap-2">
-            <input type="date" class="form-control" name="date" value="{{ selected_date or '' }}"
-                   placeholder="Filter by date">
-            <button type="submit" class="btn btn-outline-primary">Filter</button>
-            {% if selected_date %}
-                <a href="{{ url_for('activities') }}" class="btn btn-outline-secondary">Clear</a>
-            {% endif %}
-        </form>
-    </div>
-    <div class="col-md-6">
-        <form method="GET" action="{{ url_for('activities') }}" class="d-flex gap-2">
-            <select name="category" class="form-select">
-                <option value="">All Categories</option>
-                {% for category in categories %}
-                    <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>
-                        {{ category|capitalize }}
-                    </option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-outline-primary">Filter</button>
-            {% if selected_category %}
-                <a href="{{ url_for('activities') }}" class="btn btn-outline-secondary">Clear</a>
-            {% endif %}
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3"><i class="bi bi-funnel"></i> Filter Activities</h5>
+        <form method="GET" action="{{ url_for('activities') }}" id="filterForm">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">From Date</label>
+                    <input type="date" class="form-control" name="date_from" value="{{ selected_date_from or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">To Date</label>
+                    <input type="date" class="form-control" name="date_to" value="{{ selected_date_to or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>
+                                {{ category|replace('_', ' ')|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Activity Type</label>
+                    <select name="activity_type" class="form-select">
+                        <option value="">All Types</option>
+                        {% for activity_type in activity_types %}
+                            <option value="{{ activity_type }}" {% if selected_activity_type == activity_type %}selected{% endif %}>
+                                {{ activity_type|replace('_', ' ')|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Apply Filters
+                    </button>
+                    <a href="{{ url_for('activities') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Clear All Filters
+                    </a>
+                    <button type="button" class="btn btn-outline-primary" onclick="setQuickDateRange('today')">Today</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="setQuickDateRange('week')">Last 7 Days</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="setQuickDateRange('month')">Last 30 Days</button>
+                </div>
+            </div>
         </form>
     </div>
 </div>
 
 {% if activities %}
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <p class="text-muted mb-0">Showing {{ activities|length }} activities</p>
+        <div>
+            <p class="text-muted mb-0">Showing {{ activities|length }} activities</p>
+            {% if selected_date_from or selected_date_to or selected_category or selected_activity_type %}
+            <small class="text-info">
+                <i class="bi bi-info-circle"></i> Filters applied:
+                {% if selected_date_from %}From {{ selected_date_from }}{% endif %}
+                {% if selected_date_to %}To {{ selected_date_to }}{% endif %}
+                {% if selected_category %}Category: {{ selected_category|replace('_', ' ')|title }}{% endif %}
+                {% if selected_activity_type %}Type: {{ selected_activity_type|replace('_', ' ')|title }}{% endif %}
+            </small>
+            {% endif %}
+        </div>
         <button class="btn btn-sm btn-outline-danger" onclick="showClearAllModal()">
             <i class="bi bi-trash3"></i> Clear All Activities
         </button>
@@ -114,7 +149,7 @@
         <i class="bi bi-search" style="font-size: 3rem; color: #ddd;"></i>
         <h5 class="mt-3">No activities found</h5>
         <p>
-            {% if selected_date or selected_category %}
+            {% if selected_date_from or selected_date_to or selected_category or selected_activity_type %}
                 Try adjusting your filters or
                 <a href="{{ url_for('activities') }}">view all activities</a>
             {% else %}
@@ -197,5 +232,24 @@ document.getElementById('confirmationInput').addEventListener('input', function(
     const button = document.getElementById('confirmButton');
     button.disabled = this.value !== 'DELETE_ALL_ACTIVITIES';
 });
+
+// Function to set quick date ranges
+function setQuickDateRange(range) {
+    const today = new Date();
+    const dateFrom = document.querySelector('input[name="date_from"]');
+    const dateTo = document.querySelector('input[name="date_to"]');
+
+    dateTo.value = today.toISOString().split('T')[0];
+
+    if (range === 'today') {
+        dateFrom.value = today.toISOString().split('T')[0];
+    } else if (range === 'week') {
+        const weekAgo = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
+        dateFrom.value = weekAgo.toISOString().split('T')[0];
+    } else if (range === 'month') {
+        const monthAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+        dateFrom.value = monthAgo.toISOString().split('T')[0];
+    }
+}
 </script>
 {% endblock %}
