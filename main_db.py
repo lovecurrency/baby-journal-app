@@ -263,19 +263,36 @@ def quick_add():
 
 @app.route('/activities')
 def activities():
-    """View all activities with filtering."""
+    """View all activities with combined filtering."""
     # Get filter parameters
-    date_filter = request.args.get('date')
+    date_from = request.args.get('date_from')
+    date_to = request.args.get('date_to')
     category_filter = request.args.get('category')
+    activity_type_filter = request.args.get('activity_type')
 
-    # Get activities based on filters
-    if date_filter:
-        filter_date = datetime.strptime(date_filter, '%Y-%m-%d')
-        filtered_activities = journal.get_activities_by_date(filter_date)
-    elif category_filter:
-        filtered_activities = journal.get_activities_by_category(ActivityCategory(category_filter))
-    else:
-        filtered_activities = journal.get_recent_activities(limit=100)  # Get recent 100 instead of all
+    # Start with all recent activities
+    filtered_activities = journal.get_recent_activities(limit=500)
+
+    # Apply date range filter
+    if date_from:
+        from_date = datetime.strptime(date_from, '%Y-%m-%d')
+        filtered_activities = [a for a in filtered_activities
+                             if a.timestamp >= from_date.replace(hour=0, minute=0, second=0)]
+
+    if date_to:
+        to_date = datetime.strptime(date_to, '%Y-%m-%d')
+        filtered_activities = [a for a in filtered_activities
+                             if a.timestamp <= to_date.replace(hour=23, minute=59, second=59)]
+
+    # Apply category filter
+    if category_filter:
+        filtered_activities = [a for a in filtered_activities
+                             if a.category.value == category_filter]
+
+    # Apply activity type filter
+    if activity_type_filter:
+        filtered_activities = [a for a in filtered_activities
+                             if a.activity_type.value == activity_type_filter]
 
     # Sort by timestamp (newest first)
     filtered_activities = sorted(filtered_activities, key=lambda x: x.timestamp, reverse=True)
@@ -287,14 +304,22 @@ def activities():
         act_dict['timestamp_formatted'] = datetime.fromisoformat(act_dict['timestamp']).strftime('%Y-%m-%d %H:%M')
         activities_display.append(act_dict)
 
-    # Get categories for filter dropdown
+    # Get categories and activity types for filter dropdowns
     categories = [cat.value for cat in ActivityCategory]
+
+    # Get unique activity types from all activities
+    all_activities = journal.get_recent_activities(limit=500)
+    activity_types = list(set(a.activity_type.value for a in all_activities))
+    activity_types.sort()
 
     return render_template('activities.html',
                          activities=activities_display,
                          categories=categories,
-                         selected_date=date_filter,
-                         selected_category=category_filter)
+                         activity_types=activity_types,
+                         selected_date_from=date_from,
+                         selected_date_to=date_to,
+                         selected_category=category_filter,
+                         selected_activity_type=activity_type_filter)
 
 
 @app.route('/analytics')
