@@ -10,22 +10,25 @@
     </a>
 </div>
 
-<div class="card mb-4">
-    <div class="card-body">
-        <h5 class="card-title mb-3"><i class="bi bi-funnel"></i> Filter Activities</h5>
+<div class="card shadow-sm mb-4" style="border-radius: 12px; border: none;">
+    <div class="card-body p-4">
+        <div class="d-flex align-items-center mb-4">
+            <i class="bi bi-funnel text-primary me-2" style="font-size: 1.2rem;"></i>
+            <h5 class="mb-0">Filter Activities</h5>
+        </div>
         <form method="GET" action="{{ url_for('activities') }}" id="filterForm">
-            <div class="row g-3">
+            <div class="row g-3 mb-3">
                 <div class="col-md-3">
-                    <label class="form-label">From Date</label>
-                    <input type="date" class="form-control" name="date_from" value="{{ selected_date_from or '' }}">
+                    <label class="form-label text-muted small mb-1">From Date</label>
+                    <input type="date" class="form-control" name="date_from" value="{{ selected_date_from or '' }}" style="border-radius: 8px;">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">To Date</label>
-                    <input type="date" class="form-control" name="date_to" value="{{ selected_date_to or '' }}">
+                    <label class="form-label text-muted small mb-1">To Date</label>
+                    <input type="date" class="form-control" name="date_to" value="{{ selected_date_to or '' }}" style="border-radius: 8px;">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Category</label>
-                    <select name="category" class="form-select">
+                    <label class="form-label text-muted small mb-1">Category</label>
+                    <select name="category" class="form-select" style="border-radius: 8px;">
                         <option value="">All Categories</option>
                         {% for category in categories %}
                             <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>
@@ -35,8 +38,8 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Activity Type</label>
-                    <select name="activity_type" class="form-select">
+                    <label class="form-label text-muted small mb-1">Activity Type</label>
+                    <select name="activity_type" class="form-select" style="border-radius: 8px;">
                         <option value="">All Types</option>
                         {% for activity_type in activity_types %}
                             <option value="{{ activity_type }}" {% if selected_activity_type == activity_type %}selected{% endif %}>
@@ -46,18 +49,26 @@
                     </select>
                 </div>
             </div>
-            <div class="row mt-3">
-                <div class="col-md-12">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i> Apply Filters
-                    </button>
-                    <a href="{{ url_for('activities') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle"></i> Clear All Filters
-                    </a>
-                    <button type="button" class="btn btn-outline-primary" onclick="setQuickDateRange('today')">Today</button>
-                    <button type="button" class="btn btn-outline-primary" onclick="setQuickDateRange('week')">Last 7 Days</button>
-                    <button type="button" class="btn btn-outline-primary" onclick="setQuickDateRange('month')">Last 30 Days</button>
+
+            <!-- Quick Date Range Pills -->
+            <div class="mb-3">
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-secondary" onclick="setQuickDateRange('today')" style="border-radius: 20px 0 0 20px;">Today</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="setQuickDateRange('week')">Last 7 Days</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="setQuickDateRange('month')" style="border-radius: 0 20px 20px 0;">Last 30 Days</button>
                 </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" style="border-radius: 8px;">
+                    <i class="bi bi-check-lg"></i> Apply Filters
+                </button>
+                {% if selected_date_from or selected_date_to or selected_category or selected_activity_type %}
+                <a href="{{ url_for('activities') }}" class="btn btn-light" style="border-radius: 8px;">
+                    <i class="bi bi-x-lg"></i> Clear Filters
+                </a>
+                {% endif %}
             </div>
         </form>
     </div>
@@ -66,16 +77,26 @@
 {% if activities %}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <p class="text-muted mb-0">Showing {{ activities|length }} activities</p>
-            {% if selected_date_from or selected_date_to or selected_category or selected_activity_type %}
-            <small class="text-info">
-                <i class="bi bi-info-circle"></i> Filters applied:
-                {% if selected_date_from %}From {{ selected_date_from }}{% endif %}
-                {% if selected_date_to %}To {{ selected_date_to }}{% endif %}
-                {% if selected_category %}Category: {{ selected_category|replace('_', ' ')|title }}{% endif %}
-                {% if selected_activity_type %}Type: {{ selected_activity_type|replace('_', ' ')|title }}{% endif %}
-            </small>
-            {% endif %}
+            <p class="mb-0">
+                <span class="text-dark">{{ activities|length }} activities</span>
+                {% if selected_date_from or selected_date_to or selected_category or selected_activity_type %}
+                <span class="text-muted small ms-2">
+                    {% if selected_date_from and selected_date_to %}
+                        • {{ selected_date_from }} to {{ selected_date_to }}
+                    {% elif selected_date_from %}
+                        • From {{ selected_date_from }}
+                    {% elif selected_date_to %}
+                        • Until {{ selected_date_to }}
+                    {% endif %}
+                    {% if selected_category %}
+                        • {{ selected_category|replace('_', ' ')|title }}
+                    {% endif %}
+                    {% if selected_activity_type %}
+                        • {{ selected_activity_type|replace('_', ' ')|title }}
+                    {% endif %}
+                </span>
+                {% endif %}
+            </p>
         </div>
         <button class="btn btn-sm btn-outline-danger" onclick="showClearAllModal()">
             <i class="bi bi-trash3"></i> Clear All Activities
