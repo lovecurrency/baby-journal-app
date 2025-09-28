@@ -1,0 +1,102 @@
+# CodeRabbit Configuration for Baby Journal App
+reviews:
+  # Enable high-level review capabilities
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_ellipsis: false
+
+  # Enable automatic reviews on pull requests
+  auto_review:
+    enabled: true
+    drafts: false
+
+  # Enable auto-approval only for very low-risk changes
+  auto_approve:
+    enabled: false
+
+  # Chat configuration
+  chat:
+    # Enable review conversations
+    enabled: true
+    # Auto-reply to developer questions
+    auto_reply: true
+
+# Language-specific rules for Python Flask application
+language:
+  python:
+    # Enable Python-specific analysis
+    level: codebase
+
+# Path-based rules
+path_instructions:
+  - path: "app/"
+    instructions: |
+      This directory contains the core application logic including:
+      - models.py: Data models for activities and baby profiles
+      - whatsapp_parser.py: WhatsApp message parsing functionality
+      - activity_processor.py: Activity categorization and processing logic
+
+      Focus on:
+      - Code organization and maintainability
+      - Error handling and edge cases
+      - Performance implications for message parsing
+      - Data validation and sanitization
+
+  - path: "*.py"
+    instructions: |
+      Python files in this baby journal application. Please review for:
+      - Code quality and Python best practices
+      - Security vulnerabilities (especially for file uploads and data processing)
+      - Error handling and logging
+      - Documentation and type hints
+      - Performance optimization opportunities
+
+  - path: "main_db.py"
+    instructions: |
+      Main database handler for the application. Pay special attention to:
+      - SQL injection prevention
+      - Database connection management
+      - Transaction handling
+      - Data integrity and validation
+
+  - path: "templates/"
+    instructions: |
+      HTML templates for the web interface. Review for:
+      - XSS vulnerabilities
+      - Accessibility compliance
+      - Mobile responsiveness
+      - User experience improvements
+
+  - path: "requirements.txt"
+    instructions: |
+      Python dependencies. Check for:
+      - Security vulnerabilities in dependencies
+      - Version compatibility
+      - Unused dependencies
+      - Missing dependencies
+
+# Ignore patterns for files that shouldn't be reviewed
+ignore:
+  - "*.pyc"
+  - "__pycache__/"
+  - ".env"
+  - ".env.*"
+  - "uploads/"
+  - "data/"
+  - ".git/"
+  - ".claude/"
+  - "*.log"
+  - "third party UI design/"
+  - "example_data/"
+
+# Knowledge base for domain-specific guidance
+knowledge_base:
+  - "This is a baby activity tracking application that processes WhatsApp messages"
+  - "The app uses Flask for the web framework and stores data in JSON files or PostgreSQL"
+  - "Main functionality includes parsing WhatsApp exports, categorizing baby activities, and displaying analytics"
+  - "Security is important as this handles personal family data including baby health information"
+  - "The application should be optimized for ease of use by parents/caregivers"
+
+# Enable early access features
+early_access: true
