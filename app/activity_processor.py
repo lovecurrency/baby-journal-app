@@ -106,6 +106,15 @@ class ActivityProcessor:
         Returns:
             BabyActivity object or None if no activity detected
         """
+        # Validate input
+        if message is None or not isinstance(message, str):
+            return None
+
+        # Normalize message
+        message = message.strip()
+        if not message:
+            return None
+
         # Try to parse as WhatsApp message first
         raw_activity = self.parser.parse_message(message)
 
@@ -180,6 +189,14 @@ class ActivityProcessor:
 
     def _process_plain_text(self, text: str, sender: Optional[str] = None) -> Optional[BabyActivity]:
         """Process plain text message to extract activity."""
+        # Validate input
+        if text is None or not isinstance(text, str):
+            return None
+
+        text = text.strip()
+        if not text:
+            return None
+
         activity_type = self._determine_activity_type(text)
 
         if activity_type == ActivityType.OTHER:
@@ -208,6 +225,14 @@ class ActivityProcessor:
 
     def _determine_activity_type(self, text: str) -> ActivityType:
         """Determine activity type from message text."""
+        # Validate and normalize input
+        if text is None or not isinstance(text, str):
+            return ActivityType.OTHER
+
+        text = text.strip()
+        if not text:
+            return ActivityType.OTHER
+
         text_lower = text.lower()
 
         # Check each activity type's keywords
@@ -220,6 +245,10 @@ class ActivityProcessor:
 
     def _extract_amount_and_unit(self, text: str) -> tuple[Optional[float], Optional[str]]:
         """Extract numerical amount and unit from text."""
+        # Validate input
+        if text is None or not isinstance(text, str):
+            return None, None
+
         # Common patterns for amounts
         patterns = [
             (r'(\d+(?:\.\d+)?)\s*(ml|milliliters?)', 'ml'),
@@ -247,6 +276,10 @@ class ActivityProcessor:
 
     def _extract_duration(self, text: str) -> Optional[int]:
         """Extract duration in minutes from text."""
+        # Validate input
+        if text is None or not isinstance(text, str):
+            return None
+
         # Look for duration patterns
         patterns = [
             (r'(\d+(?:\.\d+)?)\s*(?:hrs?|hours?)', 60),  # hours to minutes
@@ -266,6 +299,10 @@ class ActivityProcessor:
 
     def _extract_tags(self, text: str) -> List[str]:
         """Extract hashtags or relevant tags from text."""
+        # Validate input
+        if text is None or not isinstance(text, str):
+            return []
+
         tags = []
 
         # Extract hashtags

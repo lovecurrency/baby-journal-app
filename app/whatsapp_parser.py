@@ -94,6 +94,14 @@ class WhatsAppParser:
         Returns:
             Parsed activity dictionary or None if no activity found
         """
+        # Validate input
+        if message is None or not isinstance(message, str):
+            return None
+
+        message = message.strip()
+        if not message:
+            return None
+
         msg_data = self._parse_single_message(message)
         if msg_data:
             return self._parse_message_for_activity(msg_data)
@@ -150,6 +158,14 @@ class WhatsAppParser:
 
     def _parse_single_message(self, message: str) -> Optional[Dict]:
         """Parse a single message string."""
+        # Validate input
+        if message is None or not isinstance(message, str):
+            return None
+
+        message = message.strip()
+        if not message:
+            return None
+
         patterns = [
             r'\[(\d{1,2}/\d{1,2}/\d{2,4}),?\s*(\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?)\]\s*([^:]+):\s*(.+)',
             r'\[(\d{1,2}/\d{1,2}/\d{2,4}),?\s*(\d{1,2}:\d{2}(?::\d{2})?)\]\s*([^:]+):\s*(.+)',
