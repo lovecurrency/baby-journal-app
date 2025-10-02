@@ -701,6 +701,461 @@ def edit_activity(activity_id):
         return redirect(url_for('activities'))
 
 
+@app.route('/daily-activities')
+def daily_activities():
+    """Daily recommended activities based on baby's age."""
+    # Ensure profile is loaded
+    if not journal.profile:
+        journal.load_profile()
+
+    if not journal.profile:
+        flash('Please set up baby profile first.', 'warning')
+        return redirect(url_for('setup'))
+
+    # Calculate baby's age in months
+    age_months = journal.profile.age_months
+
+    # Get age-appropriate activities
+    activities = get_daily_activities(age_months)
+
+    return render_template('daily_activities.html',
+                         profile=journal.profile,
+                         activities=activities,
+                         age_months=age_months)
+
+
+def get_daily_activities(age_months):
+    """Get 3-5 age-appropriate activities based on baby's age.
+
+    Activities are based on recommendations from:
+    - CDC (Centers for Disease Control)
+    - AAP (American Academy of Pediatrics)
+    - Harvard Center on the Developing Child
+    - UNICEF Parenting
+    - Vroom brain-building activities
+    """
+
+    # Comprehensive activity database organized by age ranges
+    activity_database = {
+        # 0-3 months
+        (0, 3): [
+            {
+                "title": "Tummy Time",
+                "description": "Place baby on their tummy for 3-5 minutes while awake and supervised. Start with short sessions and gradually increase.",
+                "benefits": "Builds neck, shoulder, and core strength. Prevents flat head syndrome. Essential for motor development.",
+                "category": "Physical",
+                "duration": "3-5 minutes, 2-3 times daily",
+                "icon": "bi-heart-pulse"
+            },
+            {
+                "title": "Face-to-Face Talking",
+                "description": "Hold baby 8-10 inches from your face. Make eye contact, smile, and talk in a warm, expressive voice. Respond to baby's coos and sounds.",
+                "benefits": "Develops language skills, visual tracking, and emotional bonding. Teaches conversation turn-taking.",
+                "category": "Brain",
+                "duration": "5-10 minutes",
+                "icon": "bi-chat-heart"
+            },
+            {
+                "title": "Reading Together",
+                "description": "Read simple board books with high-contrast images or familiar faces. Use animated voice and point to pictures.",
+                "benefits": "Develops listening skills, language comprehension, and love for books. Strengthens parent-child bond.",
+                "category": "Brain",
+                "duration": "5-10 minutes",
+                "icon": "bi-book"
+            },
+            {
+                "title": "Singing & Music",
+                "description": "Sing lullabies, nursery rhymes, or simple songs. Play gentle music and sway with baby.",
+                "benefits": "Supports brain development, language acquisition, and emotional regulation. Creates soothing routines.",
+                "category": "Social-Emotional",
+                "duration": "10-15 minutes",
+                "icon": "bi-music-note-beamed"
+            },
+            {
+                "title": "Gentle Massage",
+                "description": "Give baby a gentle massage using soft strokes on arms, legs, and back. Talk softly during the massage.",
+                "benefits": "Promotes relaxation, bonding, and body awareness. May improve sleep and digestion.",
+                "category": "Social-Emotional",
+                "duration": "10 minutes",
+                "icon": "bi-hand-thumbs-up"
+            }
+        ],
+
+        # 3-6 months
+        (3, 6): [
+            {
+                "title": "Tummy Time Play",
+                "description": "Place colorful toys just out of reach during tummy time. Encourage reaching and grabbing.",
+                "benefits": "Strengthens muscles for rolling and crawling. Develops hand-eye coordination.",
+                "category": "Physical",
+                "duration": "15-20 minutes total",
+                "icon": "bi-heart-pulse"
+            },
+            {
+                "title": "Peek-a-Boo",
+                "description": "Cover your face with hands or cloth, then reveal with 'Peek-a-boo!' Watch baby's delighted reaction.",
+                "benefits": "Teaches object permanence, cause and effect. Develops memory and social interaction.",
+                "category": "Brain",
+                "duration": "5-10 minutes",
+                "icon": "bi-emoji-smile"
+            },
+            {
+                "title": "Texture Exploration",
+                "description": "Let baby touch different safe textures: soft blanket, rubber toy, crinkly paper, smooth surfaces.",
+                "benefits": "Develops sensory processing and curiosity. Builds neural connections in the brain.",
+                "category": "Brain",
+                "duration": "10 minutes",
+                "icon": "bi-hand-index-thumb"
+            },
+            {
+                "title": "Mirror Play",
+                "description": "Hold baby in front of a mirror. Point out features: 'That's your nose!' Make faces together.",
+                "benefits": "Develops self-awareness and visual tracking. Encourages social smiling.",
+                "category": "Social-Emotional",
+                "duration": "5-10 minutes",
+                "icon": "bi-mirror"
+            },
+            {
+                "title": "Rhyme Time",
+                "description": "Recite simple nursery rhymes with hand motions and rhythm. Repeat baby's favorite ones.",
+                "benefits": "Develops language patterns, rhythm, and memory. Prepares brain for reading.",
+                "category": "Brain",
+                "duration": "10 minutes",
+                "icon": "bi-music-note"
+            }
+        ],
+
+        # 6-9 months
+        (6, 9): [
+            {
+                "title": "Sitting & Playing",
+                "description": "Help baby practice sitting while playing with blocks or stacking cups. Support as needed.",
+                "benefits": "Develops core strength and balance. Improves fine motor skills with manipulation.",
+                "category": "Physical",
+                "duration": "15 minutes",
+                "icon": "bi-box"
+            },
+            {
+                "title": "Name Recognition Game",
+                "description": "Call baby's name from different locations. Celebrate when they turn to look. Use family members' names too.",
+                "benefits": "Develops language comprehension, auditory processing, and social awareness.",
+                "category": "Brain",
+                "duration": "10 minutes",
+                "icon": "bi-megaphone"
+            },
+            {
+                "title": "Container Play",
+                "description": "Give baby safe containers and objects to put in and take out. Show how it works first.",
+                "benefits": "Teaches cause and effect, spatial awareness, and problem-solving skills.",
+                "category": "Brain",
+                "duration": "15 minutes",
+                "icon": "bi-bucket"
+            },
+            {
+                "title": "Crawling Encouragement",
+                "description": "Place favorite toy just out of reach. Cheer and encourage any movement toward it.",
+                "benefits": "Motivates gross motor development. Builds confidence and persistence.",
+                "category": "Physical",
+                "duration": "10-15 minutes",
+                "icon": "bi-arrows-move"
+            },
+            {
+                "title": "Baby Sign Language",
+                "description": "Introduce simple signs: 'milk,' 'more,' 'all done.' Use consistently during routines.",
+                "benefits": "Reduces frustration, supports language development, and improves communication.",
+                "category": "Brain",
+                "duration": "Throughout the day",
+                "icon": "bi-hand-index"
+            }
+        ],
+
+        # 9-12 months
+        (9, 12): [
+            {
+                "title": "Cruising Practice",
+                "description": "Encourage standing and walking while holding furniture. Stay close for safety and encouragement.",
+                "benefits": "Develops leg strength, balance, and coordination for independent walking.",
+                "category": "Physical",
+                "duration": "15-20 minutes",
+                "icon": "bi-person-walking"
+            },
+            {
+                "title": "Simple Puzzle Play",
+                "description": "Offer shape sorters or simple knob puzzles. Demonstrate and let baby explore.",
+                "benefits": "Develops problem-solving, hand-eye coordination, and spatial reasoning.",
+                "category": "Brain",
+                "duration": "10-15 minutes",
+                "icon": "bi-puzzle"
+            },
+            {
+                "title": "Dance & Movement",
+                "description": "Play music and dance together. Hold baby's hands and move to the rhythm. Try different tempos.",
+                "benefits": "Develops rhythm, coordination, and joy in movement. Strengthens bond.",
+                "category": "Physical",
+                "duration": "10-15 minutes",
+                "icon": "bi-music-player"
+            },
+            {
+                "title": "Point & Name",
+                "description": "Point to objects, animals in books, or things around the house. Name them clearly and wait for baby's response.",
+                "benefits": "Builds vocabulary rapidly. Develops understanding of communication and labeling.",
+                "category": "Brain",
+                "duration": "10 minutes",
+                "icon": "bi-cursor"
+            },
+            {
+                "title": "Stacking & Knocking",
+                "description": "Stack blocks or cups together, then let baby knock them down. Cheer and rebuild.",
+                "benefits": "Teaches cause and effect, develops fine motor skills, and encourages problem-solving.",
+                "category": "Physical",
+                "duration": "15 minutes",
+                "icon": "bi-stack"
+            }
+        ],
+
+        # 12-18 months
+        (12, 18): [
+            {
+                "title": "Walking Adventures",
+                "description": "Practice walking in different environments: grass, carpet, outdoors. Hold hands initially.",
+                "benefits": "Builds confidence, strength, and balance. Explores different surfaces.",
+                "category": "Physical",
+                "duration": "20 minutes",
+                "icon": "bi-sun"
+            },
+            {
+                "title": "Sorting Games",
+                "description": "Sort toys by color, size, or type. Use containers or sorting toys. 'Let's put all red ones here!'",
+                "benefits": "Develops categorization, cognitive skills, and attention to detail.",
+                "category": "Brain",
+                "duration": "15 minutes",
+                "icon": "bi-list-check"
+            },
+            {
+                "title": "Pretend Play",
+                "description": "Use toy phone, pretend to feed dolls, or mimic cooking. Follow your child's lead.",
+                "benefits": "Develops imagination, social skills, and understanding of daily routines.",
+                "category": "Social-Emotional",
+                "duration": "20 minutes",
+                "icon": "bi-stars"
+            },
+            {
+                "title": "Action Songs",
+                "description": "Sing songs with movements: 'If You're Happy,' 'The Wheels on the Bus.' Do the actions together.",
+                "benefits": "Combines language, memory, and physical coordination. Teaches body parts.",
+                "category": "Brain",
+                "duration": "15 minutes",
+                "icon": "bi-disc"
+            },
+            {
+                "title": "Simple Obstacle Course",
+                "description": "Create safe obstacles: crawl through tunnel, step over pillows, walk around chairs.",
+                "benefits": "Develops gross motor planning, coordination, and problem-solving.",
+                "category": "Physical",
+                "duration": "15-20 minutes",
+                "icon": "bi-flag"
+            }
+        ],
+
+        # 18-24 months
+        (18, 24): [
+            {
+                "title": "Ball Games",
+                "description": "Roll, throw, and kick balls together. Start with larger, soft balls.",
+                "benefits": "Develops gross motor skills, coordination, and turn-taking.",
+                "category": "Physical",
+                "duration": "20 minutes",
+                "icon": "bi-circle"
+            },
+            {
+                "title": "Scribbling & Drawing",
+                "description": "Provide large crayons and paper. Let child scribble freely. Talk about their artwork.",
+                "benefits": "Develops fine motor skills, creativity, and pre-writing abilities.",
+                "category": "Physical",
+                "duration": "15 minutes",
+                "icon": "bi-pencil"
+            },
+            {
+                "title": "Color Recognition",
+                "description": "Point out colors throughout the day. 'Find something red!' Play color matching games.",
+                "benefits": "Develops color recognition, vocabulary, and observational skills.",
+                "category": "Brain",
+                "duration": "10-15 minutes",
+                "icon": "bi-palette"
+            },
+            {
+                "title": "Story Time Discussion",
+                "description": "Read books and ask simple questions: 'Where's the dog?' Let child turn pages.",
+                "benefits": "Develops comprehension, vocabulary, and love for reading.",
+                "category": "Brain",
+                "duration": "15-20 minutes",
+                "icon": "bi-journal-text"
+            },
+            {
+                "title": "Cleanup Songs",
+                "description": "Make cleanup fun with songs. 'Clean up, clean up, everybody everywhere!' Praise efforts.",
+                "benefits": "Teaches responsibility, following directions, and makes routines enjoyable.",
+                "category": "Social-Emotional",
+                "duration": "10 minutes",
+                "icon": "bi-basket"
+            }
+        ],
+
+        # 2-3 years
+        (24, 36): [
+            {
+                "title": "Running & Jumping",
+                "description": "Practice running, jumping, and hopping in safe spaces. Play tag or jumping games.",
+                "benefits": "Develops gross motor control, cardiovascular health, and spatial awareness.",
+                "category": "Physical",
+                "duration": "20-30 minutes",
+                "icon": "bi-lightning"
+            },
+            {
+                "title": "Counting Everything",
+                "description": "Count stairs, toys, snacks, fingers. Make it part of daily routines.",
+                "benefits": "Builds number sense, one-to-one correspondence, and math foundations.",
+                "category": "Brain",
+                "duration": "Throughout the day",
+                "icon": "bi-123"
+            },
+            {
+                "title": "Memory Matching",
+                "description": "Play simple memory card games with 4-6 pairs. Start small and increase difficulty.",
+                "benefits": "Develops working memory, concentration, and pattern recognition.",
+                "category": "Brain",
+                "duration": "15 minutes",
+                "icon": "bi-grid-3x3"
+            },
+            {
+                "title": "Role-Playing Games",
+                "description": "Play house, doctor, store, or restaurant. Use props and take turns in different roles.",
+                "benefits": "Develops imagination, empathy, language, and social skills.",
+                "category": "Social-Emotional",
+                "duration": "20-30 minutes",
+                "icon": "bi-shop"
+            },
+            {
+                "title": "Freeze Dance",
+                "description": "Play music and dance. When music stops, everyone freezes. Make silly frozen poses.",
+                "benefits": "Develops self-control, listening skills, and body awareness.",
+                "category": "Physical",
+                "duration": "15 minutes",
+                "icon": "bi-pause-circle"
+            }
+        ],
+
+        # 3-4 years
+        (36, 48): [
+            {
+                "title": "Pedaling Practice",
+                "description": "Ride tricycles or pedal toys. Practice steering and coordination in safe areas.",
+                "benefits": "Develops leg strength, coordination, and spatial navigation.",
+                "category": "Physical",
+                "duration": "20-30 minutes",
+                "icon": "bi-bicycle"
+            },
+            {
+                "title": "Storytelling Together",
+                "description": "Create stories together. Start with 'Once upon a time...' and take turns adding to the story.",
+                "benefits": "Develops creativity, language, narrative skills, and imagination.",
+                "category": "Brain",
+                "duration": "15-20 minutes",
+                "icon": "bi-book-half"
+            },
+            {
+                "title": "Shape & Pattern Hunt",
+                "description": "Find shapes and patterns around the house. 'Can you find something square?'",
+                "benefits": "Develops geometric thinking, observation, and pattern recognition.",
+                "category": "Brain",
+                "duration": "15 minutes",
+                "icon": "bi-triangle"
+            },
+            {
+                "title": "Helping with Tasks",
+                "description": "Let child help with simple chores: sorting laundry, setting table, watering plants.",
+                "benefits": "Builds confidence, responsibility, and life skills. Strengthens family bonds.",
+                "category": "Social-Emotional",
+                "duration": "15-20 minutes",
+                "icon": "bi-house-check"
+            },
+            {
+                "title": "Simon Says",
+                "description": "Play Simon Says with increasingly complex directions. Take turns being Simon.",
+                "benefits": "Develops listening skills, following directions, and impulse control.",
+                "category": "Brain",
+                "duration": "15 minutes",
+                "icon": "bi-ear"
+            }
+        ],
+
+        # 4-5 years
+        (48, 60): [
+            {
+                "title": "Balancing Challenges",
+                "description": "Walk on low beams, hop on one foot, balance on stepping stones. Make it fun with games.",
+                "benefits": "Refines balance, coordination, and body control.",
+                "category": "Physical",
+                "duration": "20 minutes",
+                "icon": "bi-diagram-3"
+            },
+            {
+                "title": "Letter Recognition",
+                "description": "Identify letters in books, signs, and around the house. Play letter matching games.",
+                "benefits": "Prepares for reading. Develops letter knowledge and phonemic awareness.",
+                "category": "Brain",
+                "duration": "15-20 minutes",
+                "icon": "bi-alphabet"
+            },
+            {
+                "title": "Science Experiments",
+                "description": "Simple experiments: mixing colors, sink/float, plant growing. Ask 'What do you think will happen?'",
+                "benefits": "Develops scientific thinking, prediction skills, and curiosity.",
+                "category": "Brain",
+                "duration": "20-30 minutes",
+                "icon": "bi-flask"
+            },
+            {
+                "title": "Emotion Charades",
+                "description": "Act out different emotions. Talk about when we feel this way and how to handle feelings.",
+                "benefits": "Develops emotional intelligence, empathy, and self-regulation.",
+                "category": "Social-Emotional",
+                "duration": "15 minutes",
+                "icon": "bi-emoji-laughing"
+            },
+            {
+                "title": "Building Projects",
+                "description": "Build with blocks, Legos, or cardboard. Plan together: 'What should we build today?'",
+                "benefits": "Develops spatial reasoning, planning, problem-solving, and creativity.",
+                "category": "Brain",
+                "duration": "30 minutes",
+                "icon": "bi-bricks"
+            }
+        ]
+    }
+
+    # Determine age range
+    age_range = None
+    for (min_age, max_age), activities in activity_database.items():
+        if min_age <= age_months < max_age:
+            age_range = (min_age, max_age)
+            break
+
+    # If age is beyond 60 months, use the 4-5 year activities
+    if age_months >= 60:
+        age_range = (48, 60)
+
+    # Get activities for the age range
+    if age_range:
+        import random
+        all_activities = activity_database[age_range]
+        # Return 4-5 activities, ensuring variety of categories
+        selected = random.sample(all_activities, min(5, len(all_activities)))
+        return selected
+
+    return []
+
+
 @app.route('/health')
 def health_check():
     """Health check endpoint for monitoring."""
