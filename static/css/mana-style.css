@@ -193,6 +193,16 @@ body::after {
     border: 1px solid rgba(14, 14, 14, 0.05);
 }
 
+.navbar-custom .header-link {
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.2s ease;
+}
+
+.navbar-custom .header-link:hover {
+    opacity: 0.7;
+}
+
 .navbar-custom h1 {
     font-family: var(--font-primary);
     font-size: 1.75rem;
