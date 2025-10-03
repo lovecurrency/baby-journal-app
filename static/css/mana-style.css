@@ -1,0 +1,879 @@
+/*
+ * Baby Activity Journal - Mana Yerbamate Inspired Design
+ * Authentic recreation of Mana's aesthetic
+ */
+
+/* Import Neue Montreal Alternative (Inter as fallback) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+/* === MANA COLOR PALETTE === */
+:root {
+    /* Exact Mana Colors */
+    --mana-cream: #F5F0E6;
+    --mana-dark-blue: #2B3D73;
+    --mana-coral: #F15B40;
+    --mana-pink: #E72F63;
+    --mana-green: #195E1C;
+    --mana-teal: #2C9BA3;
+    --mana-sky-blue: #4A90E2;
+    --mana-orange: #F5A623;
+    --mana-charcoal: #0E0E0E;
+    --mana-warm-beige: #EDE7DC;
+    --mana-light-cream: #FAF8F5;
+
+    /* Semantic Colors for Baby Journal */
+    --color-feeding: var(--mana-sky-blue);
+    --color-diaper: var(--mana-coral);
+    --color-sleep: var(--mana-dark-blue);
+    --color-health: var(--mana-pink);
+    --color-milestone: var(--mana-orange);
+    --color-measurement: var(--mana-teal);
+    --color-medicine: var(--mana-pink);
+    --color-vaccine: var(--mana-green);
+    --color-other: var(--mana-charcoal);
+
+    /* Typography */
+    --font-primary: 'Space Grotesk', 'Inter', -apple-system, sans-serif;
+    --font-secondary: 'Inter', -apple-system, sans-serif;
+
+    /* Spacing */
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 1.5rem;
+    --space-lg: 2.5rem;
+    --space-xl: 4rem;
+
+    /* Shadows - Soft Mana Style */
+    --shadow-subtle: 0 2px 12px rgba(14, 14, 14, 0.04);
+    --shadow-soft: 0 4px 20px rgba(14, 14, 14, 0.06);
+    --shadow-medium: 0 8px 30px rgba(14, 14, 14, 0.08);
+    --shadow-strong: 0 12px 40px rgba(14, 14, 14, 0.12);
+
+    /* Border Radius */
+    --radius-sm: 12px;
+    --radius-md: 20px;
+    --radius-lg: 32px;
+    --radius-xl: 48px;
+    --radius-full: 9999px;
+}
+
+/* === GLOBAL STYLES === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: 16px;
+    color: var(--mana-charcoal);
+    line-height: 1.6;
+    background: var(--mana-cream);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* === PARALLAX BACKGROUND SYSTEM === */
+.parallax-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* Floating SVG Elements */
+.floating-element {
+    position: absolute;
+    opacity: 0.15;
+    animation: float-gentle 20s ease-in-out infinite;
+}
+
+.floating-element:nth-child(1) {
+    top: 10%;
+    left: 5%;
+    animation-delay: 0s;
+    animation-duration: 25s;
+}
+
+.floating-element:nth-child(2) {
+    top: 60%;
+    right: 10%;
+    animation-delay: -5s;
+    animation-duration: 30s;
+}
+
+.floating-element:nth-child(3) {
+    bottom: 15%;
+    left: 15%;
+    animation-delay: -10s;
+    animation-duration: 35s;
+}
+
+@keyframes float-gentle {
+    0%, 100% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
+    }
+    25% {
+        transform: translate(20px, -30px) rotate(5deg) scale(1.05);
+    }
+    50% {
+        transform: translate(-10px, -50px) rotate(-5deg) scale(0.95);
+    }
+    75% {
+        transform: translate(30px, -20px) rotate(3deg) scale(1.02);
+    }
+}
+
+/* Organic Background Blobs */
+body::before {
+    content: '';
+    position: fixed;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, var(--mana-sky-blue) 0%, transparent 70%);
+    opacity: 0.08;
+    top: -200px;
+    right: -200px;
+    border-radius: 50%;
+    z-index: 0;
+    animation: pulse-slow 15s ease-in-out infinite;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, var(--mana-coral) 0%, transparent 70%);
+    opacity: 0.06;
+    bottom: -150px;
+    left: -150px;
+    border-radius: 50%;
+    z-index: 0;
+    animation: pulse-slow 20s ease-in-out infinite;
+    animation-delay: -7s;
+}
+
+@keyframes pulse-slow {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.06;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.10;
+    }
+}
+
+/* === CONTAINER === */
+.container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+}
+
+/* === NAVIGATION - Mana Style === */
+.navbar-custom {
+    background: var(--mana-light-cream);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md) var(--space-lg);
+    margin-bottom: var(--space-xl);
+    box-shadow: var(--shadow-soft);
+    position: relative;
+    border: 1px solid rgba(14, 14, 14, 0.05);
+}
+
+.navbar-custom h1 {
+    font-family: var(--font-primary);
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--mana-charcoal);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.navbar-custom .btn {
+    font-family: var(--font-secondary);
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius-full);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1.5px solid transparent;
+    letter-spacing: 0.01em;
+}
+
+.navbar-custom .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-subtle);
+}
+
+.navbar-custom .btn-outline-primary {
+    border-color: var(--mana-sky-blue);
+    color: var(--mana-sky-blue);
+    background: transparent;
+}
+
+.navbar-custom .btn-outline-primary:hover {
+    background: var(--mana-sky-blue);
+    color: white;
+}
+
+.navbar-custom .btn-outline-success {
+    border-color: var(--mana-green);
+    color: var(--mana-green);
+}
+
+.navbar-custom .btn-outline-success:hover {
+    background: var(--mana-green);
+    color: white;
+}
+
+.navbar-custom .btn-outline-info {
+    border-color: var(--mana-teal);
+    color: var(--mana-teal);
+}
+
+.navbar-custom .btn-outline-info:hover {
+    background: var(--mana-teal);
+    color: white;
+}
+
+.navbar-custom .btn-outline-secondary {
+    border-color: var(--mana-charcoal);
+    color: var(--mana-charcoal);
+}
+
+.navbar-custom .btn-outline-secondary:hover {
+    background: var(--mana-charcoal);
+    color: white;
+}
+
+.navbar-custom .btn-outline-warning {
+    border-color: var(--mana-orange);
+    color: var(--mana-orange);
+}
+
+.navbar-custom .btn-outline-warning:hover {
+    background: var(--mana-orange);
+    color: white;
+}
+
+.navbar-custom .btn-outline-dark {
+    border-color: var(--mana-dark-blue);
+    color: var(--mana-dark-blue);
+}
+
+.navbar-custom .btn-outline-dark:hover {
+    background: var(--mana-dark-blue);
+    color: white;
+}
+
+/* === MAIN CONTAINER === */
+.container-main {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-soft);
+    position: relative;
+    margin-bottom: var(--space-xl);
+    border: 1px solid rgba(14, 14, 14, 0.05);
+}
+
+/* === STAT CARDS - Mana Aesthetic === */
+.stat-card {
+    background: white;
+    color: var(--mana-charcoal);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    text-align: center;
+    box-shadow: var(--shadow-subtle);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid var(--mana-sky-blue);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--mana-sky-blue), var(--mana-teal));
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-medium);
+    border-color: var(--mana-teal);
+}
+
+.stat-card h3 {
+    font-family: var(--font-primary);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-xs);
+    color: var(--mana-sky-blue);
+    letter-spacing: -0.03em;
+}
+
+.stat-card p {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--mana-charcoal);
+    opacity: 0.8;
+}
+
+/* === ACTIVITY CARDS - Organic Mana Style === */
+.activity-card {
+    background: white;
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+    box-shadow: var(--shadow-subtle);
+    border-left: 4px solid var(--mana-sky-blue);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.activity-card:hover {
+    transform: translateX(8px);
+    box-shadow: var(--shadow-soft);
+    border-left-width: 6px;
+}
+
+/* === CATEGORY BADGES - Mana Colors === */
+.category-badge {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    border-radius: var(--radius-full);
+    font-size: 0.813rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
+    box-shadow: var(--shadow-subtle);
+    transition: all 0.2s ease;
+}
+
+.category-badge:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-soft);
+}
+
+.category-feeding {
+    background: var(--mana-sky-blue);
+    color: white;
+}
+
+.category-diaper {
+    background: var(--mana-coral);
+    color: white;
+}
+
+.category-sleep {
+    background: var(--mana-dark-blue);
+    color: white;
+}
+
+.category-health {
+    background: var(--mana-pink);
+    color: white;
+}
+
+.category-vaccine {
+    background: var(--mana-green);
+    color: white;
+}
+
+.category-measurement {
+    background: var(--mana-teal);
+    color: white;
+}
+
+.category-medicine {
+    background: var(--mana-pink);
+    color: white;
+}
+
+.category-milestone {
+    background: var(--mana-orange);
+    color: white;
+}
+
+.category-other {
+    background: var(--mana-charcoal);
+    color: white;
+}
+
+/* === BUTTONS - Mana Style === */
+.btn-custom {
+    background: var(--mana-dark-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-full);
+    padding: 1rem 2.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    font-family: var(--font-secondary);
+    box-shadow: var(--shadow-soft);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.01em;
+}
+
+.btn-custom::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-custom:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-custom:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: var(--shadow-medium);
+    color: white;
+}
+
+/* === FORMS - Clean Mana Aesthetic === */
+.form-control,
+.form-select {
+    border: 2px solid rgba(14, 14, 14, 0.1);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    font-family: var(--font-secondary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    color: var(--mana-charcoal);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--mana-sky-blue);
+    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+    outline: none;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--mana-charcoal);
+    margin-bottom: var(--space-xs);
+    font-size: 0.875rem;
+    letter-spacing: 0.01em;
+}
+
+/* === ALERTS - Soft Mana Style === */
+.alert {
+    border-radius: var(--radius-sm);
+    border: none;
+    padding: var(--space-md) var(--space-lg);
+    font-size: 1rem;
+    box-shadow: var(--shadow-subtle);
+    border-left: 4px solid;
+}
+
+.alert-info {
+    background: rgba(74, 144, 226, 0.08);
+    color: var(--mana-sky-blue);
+    border-left-color: var(--mana-sky-blue);
+}
+
+.alert-success {
+    background: rgba(25, 94, 28, 0.08);
+    color: var(--mana-green);
+    border-left-color: var(--mana-green);
+}
+
+.alert-warning {
+    background: rgba(245, 166, 35, 0.08);
+    color: var(--mana-orange);
+    border-left-color: var(--mana-orange);
+}
+
+.alert-danger {
+    background: rgba(231, 47, 99, 0.08);
+    color: var(--mana-pink);
+    border-left-color: var(--mana-pink);
+}
+
+/* === CARDS === */
+.card {
+    border: none;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-subtle);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: white;
+    border: 1px solid rgba(14, 14, 14, 0.05);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-soft);
+}
+
+.card-header {
+    background: var(--mana-warm-beige);
+    border-bottom: 1px solid rgba(14, 14, 14, 0.05);
+    padding: var(--space-md) var(--space-lg);
+    font-weight: 600;
+    font-family: var(--font-primary);
+}
+
+.card-body {
+    padding: var(--space-lg);
+}
+
+/* === MODAL === */
+.modal-content {
+    border-radius: var(--radius-md);
+    border: none;
+    box-shadow: var(--shadow-strong);
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(14, 14, 14, 0.08);
+    padding: var(--space-lg);
+    background: var(--mana-light-cream);
+}
+
+.modal-body {
+    padding: var(--space-lg);
+}
+
+/* === LIST GROUP === */
+.list-group-item {
+    border: none;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+    box-shadow: var(--shadow-subtle);
+    transition: all 0.2s ease;
+    border-left: 3px solid var(--mana-sky-blue);
+}
+
+.list-group-item:hover {
+    transform: translateX(6px);
+    box-shadow: var(--shadow-soft);
+}
+
+/* === SCROLL REVEAL ANIMATIONS === */
+.scroll-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroll-reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stagger delays */
+.scroll-reveal:nth-child(1) { transition-delay: 0.1s; }
+.scroll-reveal:nth-child(2) { transition-delay: 0.2s; }
+.scroll-reveal:nth-child(3) { transition-delay: 0.3s; }
+.scroll-reveal:nth-child(4) { transition-delay: 0.4s; }
+.scroll-reveal:nth-child(5) { transition-delay: 0.5s; }
+
+/* === RESPONSIVE DESIGN === */
+
+/* Mobile Navigation Toggle */
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: 2px solid var(--mana-charcoal);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle:hover {
+    background: var(--mana-charcoal);
+    color: white;
+}
+
+.mobile-menu-toggle i {
+    font-size: 1.5rem;
+}
+
+/* Tablets (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container {
+        padding: var(--space-md);
+    }
+
+    .navbar-custom .btn {
+        font-size: 0.813rem;
+        padding: 0.625rem 1rem;
+    }
+
+    .stat-card h3 {
+        font-size: 2.25rem;
+    }
+}
+
+/* Phones (481px - 768px) */
+@media (max-width: 768px) {
+    .container {
+        padding: var(--space-sm);
+    }
+
+    .navbar-custom {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .navbar-custom h1 {
+        font-size: 1.125rem;
+    }
+
+    /* Hide desktop nav, show mobile toggle */
+    .navbar-custom .d-flex:last-child {
+        display: none !important;
+    }
+
+    .mobile-menu-toggle {
+        display: block;
+    }
+
+    /* Mobile nav menu */
+    .mobile-nav-menu {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 280px;
+        height: 100vh;
+        background: white;
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+        z-index: 9999;
+        padding: var(--space-lg);
+        transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+    }
+
+    .mobile-nav-menu.active {
+        right: 0;
+    }
+
+    .mobile-nav-menu .btn {
+        width: 100%;
+        text-align: left;
+        margin-bottom: var(--space-sm);
+        min-height: 48px; /* Touch target */
+        font-size: 1rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .mobile-nav-close {
+        position: absolute;
+        top: var(--space-sm);
+        right: var(--space-sm);
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .mobile-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(14, 14, 14, 0.5);
+        z-index: 9998;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .mobile-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .container-main {
+        padding: var(--space-md);
+        border-radius: var(--radius-sm);
+    }
+
+    .stat-card {
+        margin-bottom: var(--space-md);
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+    }
+
+    /* Touch-friendly buttons */
+    .btn {
+        min-height: 44px;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .btn-custom {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+    }
+
+    /* Activity cards full width */
+    .activity-card {
+        padding: var(--space-md);
+    }
+
+    /* Category badges larger for touch */
+    .category-badge {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.875rem;
+    }
+
+    /* Forms */
+    .form-control,
+    .form-select {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 1rem;
+        min-height: 48px;
+    }
+
+    /* Disable parallax effects */
+    body::before,
+    body::after {
+        display: none;
+    }
+
+    .floating-element {
+        display: none;
+    }
+
+    /* Stack stat cards */
+    .stat-card {
+        width: 100%;
+    }
+
+    /* Adjust spacing */
+    .navbar-custom {
+        margin-bottom: var(--space-lg);
+    }
+
+    h1, h2 {
+        font-size: 1.5rem;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+    }
+
+    h4 {
+        font-size: 1.125rem;
+    }
+}
+
+/* Small Phones (< 480px) */
+@media (max-width: 480px) {
+    .container {
+        padding: 0.75rem;
+    }
+
+    .navbar-custom {
+        padding: 0.75rem;
+        border-radius: var(--radius-sm);
+    }
+
+    .navbar-custom h1 {
+        font-size: 1rem;
+    }
+
+    .container-main {
+        padding: var(--space-sm);
+        border-radius: var(--radius-sm);
+    }
+
+    .stat-card {
+        padding: var(--space-md);
+    }
+
+    .stat-card h3 {
+        font-size: 1.75rem;
+    }
+
+    .stat-card p {
+        font-size: 0.75rem;
+    }
+
+    .activity-card {
+        padding: var(--space-sm);
+    }
+
+    .btn {
+        font-size: 0.875rem;
+    }
+
+    .btn-custom {
+        padding: 0.875rem 1.5rem;
+    }
+
+    .category-badge {
+        font-size: 0.75rem;
+        padding: 0.5rem 1rem;
+    }
+
+    /* Even more compact */
+    h1, h2 {
+        font-size: 1.25rem;
+    }
+
+    h3 {
+        font-size: 1.125rem;
+    }
+
+    h4 {
+        font-size: 1rem;
+    }
+
+    /* Mobile nav menu narrower */
+    .mobile-nav-menu {
+        width: 85%;
+        max-width: 320px;
+    }
+}
+
+/* === UTILITY CLASSES === */
+.text-mana-charcoal { color: var(--mana-charcoal) !important; }
+.text-mana-blue { color: var(--mana-sky-blue) !important; }
+.text-mana-coral { color: var(--mana-coral) !important; }
+.text-mana-green { color: --mana-green) !important; }
+
+.bg-mana-cream { background-color: var(--mana-cream) !important; }
+.bg-mana-light-cream { background-color: var(--mana-light-cream) !important; }
+
+/* === BOOTSTRAP OVERRIDES === */
+.text-primary { color: var(--mana-sky-blue) !important; }
+.text-muted { color: rgba(14, 14, 14, 0.6) !important; }
+.badge { font-weight: 600; }
