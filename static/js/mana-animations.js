@@ -69,9 +69,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if (isMobile) {
-        setupMobileNav();
-    }
+    // Always setup mobile nav (CSS controls visibility)
+    setupMobileNav();
 
     // ===  PARALLAX BACKGROUND SYSTEM ===
     function createParallaxBackground() {
