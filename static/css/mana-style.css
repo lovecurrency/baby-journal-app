@@ -652,7 +652,7 @@ body::after {
     }
 
     /* Hide desktop nav, show mobile toggle */
-    .navbar-custom .d-flex:last-child {
+    .nav-links-wrapper {
         display: none !important;
     }
 

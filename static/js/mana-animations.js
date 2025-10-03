@@ -23,19 +23,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // Create mobile menu
         const mobileMenu = document.createElement('div');
         mobileMenu.className = 'mobile-nav-menu';
+        const navLinks = document.querySelector('.nav-links-wrapper');
         mobileMenu.innerHTML = `
             <button class="mobile-nav-close" aria-label="Close menu">
                 <i class="bi bi-x-lg"></i>
             </button>
-            ${document.querySelector('.navbar-custom .d-flex:last-child')?.innerHTML || ''}
+            ${navLinks?.innerHTML || ''}
         `;
 
         // Create overlay
         const overlay = document.createElement('div');
         overlay.className = 'mobile-overlay';
 
-        // Add to DOM
-        nav.querySelector('.d-flex')?.appendChild(toggleBtn);
+        // Add to DOM - append toggle button next to nav-links-wrapper
+        const navParent = nav.querySelector('.d-flex');
+        navParent?.appendChild(toggleBtn);
         document.body.appendChild(mobileMenu);
         document.body.appendChild(overlay);
 
