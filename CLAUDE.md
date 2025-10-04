@@ -104,6 +104,68 @@ Located in `demo/` directory:
 3. **Templates** inherit from `base.html` - maintain consistency
 4. **CSS/JS** - Use `mana-style.css` and `mana-animations.js`
 
+---
+
+## 🎨 Frontend Development Workflow
+
+**IMPORTANT: Always test frontend changes with Playwright before committing!**
+
+### Testing Process:
+
+1. **Start the Flask app in background:**
+   ```bash
+   python3 main_db.py &
+   sleep 3  # Wait for app to start
+   ```
+
+2. **Use Playwright to verify changes:**
+   ```bash
+   # Navigate to the page
+   mcp__playwright__playwright_navigate(url="http://localhost:8080")
+
+   # Take screenshots
+   mcp__playwright__playwright_screenshot(name="desktop-view", width=1280, height=720)
+   mcp__playwright__playwright_screenshot(name="mobile-view", width=375, height=667)
+
+   # Test interactions (clicks, forms, etc.)
+   mcp__playwright__playwright_click(selector="#menu-button")
+   mcp__playwright__playwright_screenshot(name="mobile-menu-open")
+
+   # Close Playwright
+   mcp__playwright__playwright_close()
+   ```
+
+3. **Kill the Flask process:**
+   ```bash
+   pkill -f main_db.py
+   ```
+
+4. **Verify screenshots before committing**
+
+### Test Viewports:
+- **Desktop:** 1280x720 (default)
+- **Mobile:** 375x667 (iPhone SE)
+- **Tablet:** 768x1024 (iPad)
+
+### Critical Areas to Verify:
+- ✅ Mobile menu (hamburger icon, drawer animation)
+- ✅ Responsive layout (cards stack properly)
+- ✅ Statistics cards display correctly
+- ✅ Form inputs and buttons are accessible
+- ✅ Navigation links work
+- ✅ Colors match Mana design palette
+- ✅ Animations are smooth (not janky)
+
+### Why Use Playwright?
+
+Frontend bugs are easy to introduce and hard to catch without visual verification:
+- CSS changes can break mobile layouts
+- JavaScript errors can break interactions
+- Template changes can cause rendering issues
+- Color/design inconsistencies are only visible visually
+
+**Always test before committing to avoid deploying broken UI!**
+
 ### Database Access:
 ```python
 from app.database import get_db_service
