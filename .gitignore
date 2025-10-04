@@ -65,3 +65,7 @@ uploads/
 # Environment variables
 .env
 .env.local
+
+# Demo and documentation files (local only)
+demo/
+*PREVIEW.html
