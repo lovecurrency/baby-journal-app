@@ -92,11 +92,13 @@ body {
 /* Floating SVG Elements */
 .floating-element {
     position: absolute;
-    opacity: 0.4;
+    opacity: 0.5;
     animation: float-gentle 20s ease-in-out infinite;
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+    transform: scale(1.5);
 }
 
+/* Cloud */
 .floating-element:nth-child(1) {
     top: 10%;
     left: 5%;
@@ -104,6 +106,7 @@ body {
     animation-duration: 25s;
 }
 
+/* Star */
 .floating-element:nth-child(2) {
     top: 60%;
     right: 10%;
@@ -111,6 +114,7 @@ body {
     animation-duration: 30s;
 }
 
+/* Heart */
 .floating-element:nth-child(3) {
     bottom: 15%;
     left: 15%;
@@ -118,18 +122,66 @@ body {
     animation-duration: 35s;
 }
 
+/* Elephant */
+.floating-element:nth-child(4) {
+    top: 20%;
+    right: 15%;
+}
+
+/* Giraffe */
+.floating-element:nth-child(5) {
+    top: 50%;
+    left: 8%;
+}
+
+/* Bunny */
+.floating-element:nth-child(6) {
+    bottom: 25%;
+    right: 20%;
+}
+
+/* Duck */
+.floating-element:nth-child(7) {
+    top: 35%;
+    left: 50%;
+}
+
+/* Teddy Bear */
+.floating-element:nth-child(8) {
+    bottom: 10%;
+    right: 35%;
+}
+
+/* Owl */
+.floating-element:nth-child(9) {
+    top: 5%;
+    left: 40%;
+}
+
+/* Butterfly */
+.floating-element:nth-child(10) {
+    top: 70%;
+    left: 30%;
+}
+
+/* Turtle */
+.floating-element:nth-child(11) {
+    bottom: 40%;
+    right: 5%;
+}
+
 @keyframes float-gentle {
     0%, 100% {
-        transform: translate(0, 0) rotate(0deg) scale(1);
+        transform: translate(0, 0) rotate(0deg) scale(1.5);
     }
     25% {
-        transform: translate(20px, -30px) rotate(5deg) scale(1.05);
+        transform: translate(20px, -30px) rotate(5deg) scale(1.6);
     }
     50% {
-        transform: translate(-10px, -50px) rotate(-5deg) scale(0.95);
+        transform: translate(-10px, -50px) rotate(-5deg) scale(1.45);
     }
     75% {
-        transform: translate(30px, -20px) rotate(3deg) scale(1.02);
+        transform: translate(30px, -20px) rotate(3deg) scale(1.55);
     }
 }
 
@@ -953,16 +1005,16 @@ body::after {
 /* Floating animals animation */
 @keyframes float-animal {
     0%, 100% {
-        transform: translate(0, 0) rotate(0deg) scale(1);
+        transform: translate(0, 0) rotate(0deg) scale(1.5);
     }
     25% {
-        transform: translate(30px, -40px) rotate(8deg) scale(1.08);
+        transform: translate(30px, -40px) rotate(8deg) scale(1.62);
     }
     50% {
-        transform: translate(-20px, -80px) rotate(-8deg) scale(0.92);
+        transform: translate(-20px, -80px) rotate(-8deg) scale(1.38);
     }
     75% {
-        transform: translate(40px, -40px) rotate(5deg) scale(1.05);
+        transform: translate(40px, -40px) rotate(5deg) scale(1.58);
     }
 }
 
