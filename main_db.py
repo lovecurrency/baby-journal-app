@@ -4,6 +4,7 @@ This version uses Supabase PostgreSQL instead of JSON files.
 
 CodeRabbit configuration has been added for automated code reviews.
 Mobile-optimized Mana design with responsive navigation.
+Testing deployment timeout issue.
 """
 
 import os
