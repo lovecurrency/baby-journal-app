@@ -92,8 +92,9 @@ body {
 /* Floating SVG Elements */
 .floating-element {
     position: absolute;
-    opacity: 0.15;
+    opacity: 0.4;
     animation: float-gentle 20s ease-in-out infinite;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
 }
 
 .floating-element:nth-child(1) {
@@ -1078,8 +1079,9 @@ body::after {
 
 .mobile-floating-animal {
     position: absolute;
-    opacity: 0.2;
+    opacity: 0.35;
     animation: float-animal 20s ease-in-out infinite;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
 }
 
 .mobile-floating-animal:nth-child(1) {

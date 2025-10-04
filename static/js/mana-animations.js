@@ -132,118 +132,118 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function createFloatingCloud() {
         return `<svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M30 50c-10 0-18-8-18-18s8-18 18-18c2 0 4 0 6 1 3-8 11-14 20-14 12 0 22 10 22 22 0 1 0 2-1 3 9 1 16 9 16 18 0 10-8 18-18 18H30z" fill="#4A90E2" opacity="0.3"/>
+            <path d="M30 50c-10 0-18-8-18-18s8-18 18-18c2 0 4 0 6 1 3-8 11-14 20-14 12 0 22 10 22 22 0 1 0 2-1 3 9 1 16 9 16 18 0 10-8 18-18 18H30z" fill="#4A90E2" opacity="0.6"/>
         </svg>`;
     }
 
     function createFloatingStar() {
         return `<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M40 5l8 24h25l-20 15 8 24-21-15-21 15 8-24-20-15h25z" fill="#F5A623" opacity="0.3"/>
+            <path d="M40 5l8 24h25l-20 15 8 24-21-15-21 15 8-24-20-15h25z" fill="#F5A623" opacity="0.6"/>
         </svg>`;
     }
 
     function createFloatingHeart() {
         return `<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 85c-1 0-2-1-3-1C20 65 10 55 10 40c0-10 7-17 17-17 6 0 12 3 16 8 4-5 10-8 16-8 10 0 17 7 17 17 0 15-10 25-37 44-1 0-2 1-3 1z" fill="#E72F63" opacity="0.3"/>
+            <path d="M50 85c-1 0-2-1-3-1C20 65 10 55 10 40c0-10 7-17 17-17 6 0 12 3 16 8 4-5 10-8 16-8 10 0 17 7 17 17 0 15-10 25-37 44-1 0-2 1-3 1z" fill="#E72F63" opacity="0.6"/>
         </svg>`;
     }
 
     // === BABY ANIMAL SVGs ===
     function createElephant() {
         return `<svg width="140" height="120" viewBox="0 0 140 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="70" cy="70" rx="45" ry="40" fill="#4A90E2" opacity="0.3"/>
-            <ellipse cx="55" cy="60" rx="8" ry="10" fill="#2B3D73" opacity="0.5"/>
-            <ellipse cx="85" cy="60" rx="8" ry="10" fill="#2B3D73" opacity="0.5"/>
-            <path d="M45 85 Q40 100 35 110" stroke="#4A90E2" stroke-width="6" stroke-linecap="round" opacity="0.3"/>
-            <path d="M95 85 Q100 100 105 110" stroke="#4A90E2" stroke-width="6" stroke-linecap="round" opacity="0.3"/>
-            <path d="M60 45 Q50 25 45 10" stroke="#4A90E2" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
-            <circle cx="50" cy="65" r="3" fill="#0E0E0E" opacity="0.6"/>
-            <circle cx="90" cy="65" r="3" fill="#0E0E0E" opacity="0.6"/>
+            <ellipse cx="70" cy="70" rx="45" ry="40" fill="#4A90E2" opacity="0.7"/>
+            <ellipse cx="55" cy="60" rx="8" ry="10" fill="#2B3D73" opacity="0.8"/>
+            <ellipse cx="85" cy="60" rx="8" ry="10" fill="#2B3D73" opacity="0.8"/>
+            <path d="M45 85 Q40 100 35 110" stroke="#4A90E2" stroke-width="6" stroke-linecap="round" opacity="0.7"/>
+            <path d="M95 85 Q100 100 105 110" stroke="#4A90E2" stroke-width="6" stroke-linecap="round" opacity="0.7"/>
+            <path d="M60 45 Q50 25 45 10" stroke="#4A90E2" stroke-width="8" stroke-linecap="round" opacity="0.7"/>
+            <circle cx="50" cy="65" r="3" fill="#0E0E0E" opacity="0.9"/>
+            <circle cx="90" cy="65" r="3" fill="#0E0E0E" opacity="0.9"/>
         </svg>`;
     }
 
     function createGiraffe() {
         return `<svg width="100" height="160" viewBox="0 0 100 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="40" y="40" width="20" height="80" rx="10" fill="#F5A623" opacity="0.3"/>
-            <circle cx="50" cy="30" r="20" fill="#F5A623" opacity="0.3"/>
-            <circle cx="45" cy="25" r="3" fill="#0E0E0E" opacity="0.5"/>
-            <circle cx="55" cy="25" r="3" fill="#0E0E0E" opacity="0.5"/>
-            <rect x="43" y="10" width="4" height="8" rx="2" fill="#F5A623" opacity="0.3"/>
-            <rect x="53" y="10" width="4" height="8" rx="2" fill="#F5A623" opacity="0.3"/>
-            <circle cx="35" cy="20" r="4" fill="#F5A623" opacity="0.4"/>
-            <circle cx="50" cy="60" r="5" fill="#F5A623" opacity="0.4"/>
-            <circle cx="45" cy="90" r="4" fill="#F5A623" opacity="0.4"/>
+            <rect x="40" y="40" width="20" height="80" rx="10" fill="#F5A623" opacity="0.7"/>
+            <circle cx="50" cy="30" r="20" fill="#F5A623" opacity="0.7"/>
+            <circle cx="45" cy="25" r="3" fill="#0E0E0E" opacity="0.9"/>
+            <circle cx="55" cy="25" r="3" fill="#0E0E0E" opacity="0.9"/>
+            <rect x="43" y="10" width="4" height="8" rx="2" fill="#F5A623" opacity="0.7"/>
+            <rect x="53" y="10" width="4" height="8" rx="2" fill="#F5A623" opacity="0.7"/>
+            <circle cx="35" cy="20" r="4" fill="#F5A623" opacity="0.7"/>
+            <circle cx="50" cy="60" r="5" fill="#F5A623" opacity="0.7"/>
+            <circle cx="45" cy="90" r="4" fill="#F5A623" opacity="0.7"/>
         </svg>`;
     }
 
     function createBunny() {
         return `<svg width="100" height="120" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="50" cy="70" rx="30" ry="35" fill="#D4C5F9" opacity="0.3"/>
-            <ellipse cx="35" cy="35" rx="8" ry="25" fill="#D4C5F9" opacity="0.3"/>
-            <ellipse cx="65" cy="35" rx="8" ry="25" fill="#D4C5F9" opacity="0.3"/>
-            <circle cx="45" cy="65" r="3" fill="#E72F63" opacity="0.5"/>
-            <circle cx="55" cy="65" r="3" fill="#E72F63" opacity="0.5"/>
-            <circle cx="50" cy="100" r="10" fill="#D4C5F9" opacity="0.3"/>
-            <path d="M40 75 Q50 78 60 75" stroke="#E72F63" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+            <ellipse cx="50" cy="70" rx="30" ry="35" fill="#D4C5F9" opacity="0.7"/>
+            <ellipse cx="35" cy="35" rx="8" ry="25" fill="#D4C5F9" opacity="0.7"/>
+            <ellipse cx="65" cy="35" rx="8" ry="25" fill="#D4C5F9" opacity="0.7"/>
+            <circle cx="45" cy="65" r="3" fill="#E72F63" opacity="0.9"/>
+            <circle cx="55" cy="65" r="3" fill="#E72F63" opacity="0.9"/>
+            <circle cx="50" cy="100" r="10" fill="#D4C5F9" opacity="0.7"/>
+            <path d="M40 75 Q50 78 60 75" stroke="#E72F63" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
         </svg>`;
     }
 
     function createDuck() {
         return `<svg width="120" height="100" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="70" cy="60" rx="35" ry="30" fill="#F5A623" opacity="0.3"/>
-            <circle cx="55" cy="45" r="22" fill="#F5A623" opacity="0.3"/>
-            <path d="M30 45 Q25 48 25 52 Q25 56 30 58" fill="#F15B40" opacity="0.4"/>
-            <circle cx="50" cy="42" r="3" fill="#0E0E0E" opacity="0.6"/>
-            <ellipse cx="90" cy="75" rx="15" ry="8" fill="#F5A623" opacity="0.3"/>
+            <ellipse cx="70" cy="60" rx="35" ry="30" fill="#F5A623" opacity="0.7"/>
+            <circle cx="55" cy="45" r="22" fill="#F5A623" opacity="0.7"/>
+            <path d="M30 45 Q25 48 25 52 Q25 56 30 58" fill="#F15B40" opacity="0.8"/>
+            <circle cx="50" cy="42" r="3" fill="#0E0E0E" opacity="0.9"/>
+            <ellipse cx="90" cy="75" rx="15" ry="8" fill="#F5A623" opacity="0.7"/>
         </svg>`;
     }
 
     function createTeddyBear() {
         return `<svg width="110" height="120" viewBox="0 0 110 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="30" cy="30" r="15" fill="#F15B40" opacity="0.3"/>
-            <circle cx="80" cy="30" r="15" fill="#F15B40" opacity="0.3"/>
-            <circle cx="55" cy="50" r="30" fill="#F15B40" opacity="0.3"/>
-            <ellipse cx="55" cy="95" rx="25" ry="20" fill="#F15B40" opacity="0.3"/>
-            <circle cx="48" cy="45" r="3" fill="#0E0E0E" opacity="0.6"/>
-            <circle cx="62" cy="45" r="3" fill="#0E0E0E" opacity="0.6"/>
-            <path d="M50 55 Q55 58 60 55" stroke="#0E0E0E" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
-            <circle cx="55" cy="52" r="4" fill="#0E0E0E" opacity="0.4"/>
+            <circle cx="30" cy="30" r="15" fill="#F15B40" opacity="0.7"/>
+            <circle cx="80" cy="30" r="15" fill="#F15B40" opacity="0.7"/>
+            <circle cx="55" cy="50" r="30" fill="#F15B40" opacity="0.7"/>
+            <ellipse cx="55" cy="95" rx="25" ry="20" fill="#F15B40" opacity="0.7"/>
+            <circle cx="48" cy="45" r="3" fill="#0E0E0E" opacity="0.9"/>
+            <circle cx="62" cy="45" r="3" fill="#0E0E0E" opacity="0.9"/>
+            <path d="M50 55 Q55 58 60 55" stroke="#0E0E0E" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+            <circle cx="55" cy="52" r="4" fill="#0E0E0E" opacity="0.7"/>
         </svg>`;
     }
 
     function createOwl() {
         return `<svg width="100" height="110" viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="50" cy="60" rx="35" ry="40" fill="#2C9BA3" opacity="0.3"/>
-            <circle cx="35" cy="50" r="15" fill="#FAF8F5" opacity="0.5"/>
-            <circle cx="65" cy="50" r="15" fill="#FAF8F5" opacity="0.5"/>
-            <circle cx="35" cy="50" r="8" fill="#0E0E0E" opacity="0.6"/>
-            <circle cx="65" cy="50" r="8" fill="#0E0E0E" opacity="0.6"/>
-            <path d="M40 25 L30 15 M60 25 L70 15" stroke="#2C9BA3" stroke-width="4" stroke-linecap="round" opacity="0.3"/>
-            <path d="M45 70 Q50 72 55 70" fill="#F5A623" opacity="0.4"/>
+            <ellipse cx="50" cy="60" rx="35" ry="40" fill="#2C9BA3" opacity="0.7"/>
+            <circle cx="35" cy="50" r="15" fill="#FAF8F5" opacity="0.8"/>
+            <circle cx="65" cy="50" r="15" fill="#FAF8F5" opacity="0.8"/>
+            <circle cx="35" cy="50" r="8" fill="#0E0E0E" opacity="0.9"/>
+            <circle cx="65" cy="50" r="8" fill="#0E0E0E" opacity="0.9"/>
+            <path d="M40 25 L30 15 M60 25 L70 15" stroke="#2C9BA3" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+            <path d="M45 70 Q50 72 55 70" fill="#F5A623" opacity="0.7"/>
         </svg>`;
     }
 
     function createButterfly() {
         return `<svg width="100" height="80" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="30" cy="30" rx="20" ry="25" fill="#E72F63" opacity="0.3"/>
-            <ellipse cx="70" cy="30" rx="20" ry="25" fill="#4A90E2" opacity="0.3"/>
-            <ellipse cx="30" cy="55" rx="15" ry="20" fill="#F5A623" opacity="0.3"/>
-            <ellipse cx="70" cy="55" rx="15" ry="20" fill="#2C9BA3" opacity="0.3"/>
-            <rect x="48" y="20" width="4" height="50" rx="2" fill="#2B3D73" opacity="0.4"/>
-            <path d="M50 20 L45 10 M50 20 L55 10" stroke="#2B3D73" stroke-width="2" opacity="0.4"/>
+            <ellipse cx="30" cy="30" rx="20" ry="25" fill="#E72F63" opacity="0.7"/>
+            <ellipse cx="70" cy="30" rx="20" ry="25" fill="#4A90E2" opacity="0.7"/>
+            <ellipse cx="30" cy="55" rx="15" ry="20" fill="#F5A623" opacity="0.7"/>
+            <ellipse cx="70" cy="55" rx="15" ry="20" fill="#2C9BA3" opacity="0.7"/>
+            <rect x="48" y="20" width="4" height="50" rx="2" fill="#2B3D73" opacity="0.8"/>
+            <path d="M50 20 L45 10 M50 20 L55 10" stroke="#2B3D73" stroke-width="2" opacity="0.7"/>
         </svg>`;
     }
 
     function createTurtle() {
         return `<svg width="120" height="90" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="60" cy="50" rx="40" ry="30" fill="#195E1C" opacity="0.3"/>
-            <circle cx="45" cy="45" r="5" fill="#195E1C" opacity="0.4"/>
-            <circle cx="60" cy="40" r="6" fill="#195E1C" opacity="0.4"/>
-            <circle cx="75" cy="45" r="5" fill="#195E1C" opacity="0.4"/>
-            <ellipse cx="35" cy="65" rx="10" ry="6" fill="#195E1C" opacity="0.3"/>
-            <ellipse cx="85" cy="65" rx="10" ry="6" fill="#195E1C" opacity="0.3"/>
-            <circle cx="95" cy="45" r="12" fill="#195E1C" opacity="0.3"/>
-            <circle cx="93" cy="43" r="2" fill="#0E0E0E" opacity="0.5"/>
+            <ellipse cx="60" cy="50" rx="40" ry="30" fill="#195E1C" opacity="0.7"/>
+            <circle cx="45" cy="45" r="5" fill="#195E1C" opacity="0.7"/>
+            <circle cx="60" cy="40" r="6" fill="#195E1C" opacity="0.7"/>
+            <circle cx="75" cy="45" r="5" fill="#195E1C" opacity="0.7"/>
+            <ellipse cx="35" cy="65" rx="10" ry="6" fill="#195E1C" opacity="0.7"/>
+            <ellipse cx="85" cy="65" rx="10" ry="6" fill="#195E1C" opacity="0.7"/>
+            <circle cx="95" cy="45" r="12" fill="#195E1C" opacity="0.7"/>
+            <circle cx="93" cy="43" r="2" fill="#0E0E0E" opacity="0.9"/>
         </svg>`;
     }
 
