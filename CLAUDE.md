@@ -166,6 +166,38 @@ Frontend bugs are easy to introduce and hard to catch without visual verificatio
 
 **Always test before committing to avoid deploying broken UI!**
 
+### Troubleshooting Playwright
+
+**Common Error:** "Executable doesn't exist at /home/codespace/.cache/ms-playwright/chromium-XXXX/chrome-linux/chrome"
+
+**Cause:** Playwright version mismatch between installed browsers and what the MCP server expects.
+
+**Quick Fix:**
+```bash
+bash scripts/fix-playwright.sh
+```
+
+**Manual Fix:**
+```bash
+cd ~/.cache/ms-playwright
+ln -sf chromium-1193 chromium-1179  # Replace with actual versions
+ln -sf chromium_headless_shell-1193 chromium_headless_shell-1179
+```
+
+**Install Browsers (if missing):**
+```bash
+python3 -m playwright install chromium
+```
+
+The fix script automatically:
+- Detects installed browser versions
+- Creates symlinks to match what Playwright expects
+- Works for both chromium and headless shell
+
+**Note:** Run the fix script anytime Playwright updates or in a new codespace.
+
+---
+
 ### Database Access:
 ```python
 from app.database import get_db_service
