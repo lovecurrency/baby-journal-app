@@ -424,10 +424,22 @@ class DatabaseService:
         start_date = min(row['earliest_activity'] for row in result)
         days = (datetime.now() - start_date).days + 1
 
+        # Map category names to match template expectations
+        category_mapping = {
+            'feeding': 'feedings',
+            'diaper': 'diaper_changes',
+            'sleep': 'sleep_sessions',
+            'milestone': 'milestones',
+            'health': 'health_events'
+        }
+
         stats['daily_averages'] = {}
         for row in result:
+            category = row['category']
             daily_avg = round(row['category_count'] / days, 1)
-            stats['daily_averages'][f"{row['category']}_per_day"] = daily_avg
+            # Use mapped name if available, otherwise use original category name
+            mapped_name = category_mapping.get(category, category)
+            stats['daily_averages'][mapped_name] = daily_avg
 
         return stats
 
