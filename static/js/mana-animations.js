@@ -79,21 +79,55 @@ document.addEventListener('DOMContentLoaded', function() {
         const parallaxContainer = document.createElement('div');
         parallaxContainer.className = 'parallax-background';
 
-        // Create floating SVG elements (baby-themed)
+        // Create floating SVG elements (baby-themed with animals!)
         const svgs = [
             createFloatingCloud(),
             createFloatingStar(),
-            createFloatingHeart()
+            createFloatingHeart(),
+            createElephant(),
+            createGiraffe(),
+            createBunny(),
+            createDuck(),
+            createTeddyBear(),
+            createOwl(),
+            createButterfly(),
+            createTurtle()
         ];
 
-        svgs.forEach(svg => {
+        svgs.forEach((svg, index) => {
             const floatingEl = document.createElement('div');
             floatingEl.className = 'floating-element';
+            // Add animal-specific animation class
+            if (index >= 3) {
+                floatingEl.classList.add('floating-animal');
+            }
             floatingEl.innerHTML = svg;
             parallaxContainer.appendChild(floatingEl);
         });
 
         document.body.prepend(parallaxContainer);
+    }
+
+    // Mobile-optimized animal background
+    function createMobileAnimals() {
+        const animalContainer = document.createElement('div');
+        animalContainer.className = 'mobile-animals';
+
+        // Fewer, larger animals for mobile
+        const mobileAnimals = [
+            createElephant(),
+            createBunny(),
+            createButterfly()
+        ];
+
+        mobileAnimals.forEach((svg, index) => {
+            const animalEl = document.createElement('div');
+            animalEl.className = 'mobile-floating-animal';
+            animalEl.innerHTML = svg;
+            animalContainer.appendChild(animalEl);
+        });
+
+        document.body.prepend(animalContainer);
     }
 
     function createFloatingCloud() {
@@ -114,9 +148,110 @@ document.addEventListener('DOMContentLoaded', function() {
         </svg>`;
     }
 
-    // Initialize parallax (desktop only)
+    // === BABY ANIMAL SVGs ===
+    function createElephant() {
+        return `<svg width="140" height="120" viewBox="0 0 140 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="70" cy="70" rx="45" ry="40" fill="#4A90E2" opacity="0.3"/>
+            <ellipse cx="55" cy="60" rx="8" ry="10" fill="#2B3D73" opacity="0.5"/>
+            <ellipse cx="85" cy="60" rx="8" ry="10" fill="#2B3D73" opacity="0.5"/>
+            <path d="M45 85 Q40 100 35 110" stroke="#4A90E2" stroke-width="6" stroke-linecap="round" opacity="0.3"/>
+            <path d="M95 85 Q100 100 105 110" stroke="#4A90E2" stroke-width="6" stroke-linecap="round" opacity="0.3"/>
+            <path d="M60 45 Q50 25 45 10" stroke="#4A90E2" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+            <circle cx="50" cy="65" r="3" fill="#0E0E0E" opacity="0.6"/>
+            <circle cx="90" cy="65" r="3" fill="#0E0E0E" opacity="0.6"/>
+        </svg>`;
+    }
+
+    function createGiraffe() {
+        return `<svg width="100" height="160" viewBox="0 0 100 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="40" width="20" height="80" rx="10" fill="#F5A623" opacity="0.3"/>
+            <circle cx="50" cy="30" r="20" fill="#F5A623" opacity="0.3"/>
+            <circle cx="45" cy="25" r="3" fill="#0E0E0E" opacity="0.5"/>
+            <circle cx="55" cy="25" r="3" fill="#0E0E0E" opacity="0.5"/>
+            <rect x="43" y="10" width="4" height="8" rx="2" fill="#F5A623" opacity="0.3"/>
+            <rect x="53" y="10" width="4" height="8" rx="2" fill="#F5A623" opacity="0.3"/>
+            <circle cx="35" cy="20" r="4" fill="#F5A623" opacity="0.4"/>
+            <circle cx="50" cy="60" r="5" fill="#F5A623" opacity="0.4"/>
+            <circle cx="45" cy="90" r="4" fill="#F5A623" opacity="0.4"/>
+        </svg>`;
+    }
+
+    function createBunny() {
+        return `<svg width="100" height="120" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="50" cy="70" rx="30" ry="35" fill="#D4C5F9" opacity="0.3"/>
+            <ellipse cx="35" cy="35" rx="8" ry="25" fill="#D4C5F9" opacity="0.3"/>
+            <ellipse cx="65" cy="35" rx="8" ry="25" fill="#D4C5F9" opacity="0.3"/>
+            <circle cx="45" cy="65" r="3" fill="#E72F63" opacity="0.5"/>
+            <circle cx="55" cy="65" r="3" fill="#E72F63" opacity="0.5"/>
+            <circle cx="50" cy="100" r="10" fill="#D4C5F9" opacity="0.3"/>
+            <path d="M40 75 Q50 78 60 75" stroke="#E72F63" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+        </svg>`;
+    }
+
+    function createDuck() {
+        return `<svg width="120" height="100" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="70" cy="60" rx="35" ry="30" fill="#F5A623" opacity="0.3"/>
+            <circle cx="55" cy="45" r="22" fill="#F5A623" opacity="0.3"/>
+            <path d="M30 45 Q25 48 25 52 Q25 56 30 58" fill="#F15B40" opacity="0.4"/>
+            <circle cx="50" cy="42" r="3" fill="#0E0E0E" opacity="0.6"/>
+            <ellipse cx="90" cy="75" rx="15" ry="8" fill="#F5A623" opacity="0.3"/>
+        </svg>`;
+    }
+
+    function createTeddyBear() {
+        return `<svg width="110" height="120" viewBox="0 0 110 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="30" cy="30" r="15" fill="#F15B40" opacity="0.3"/>
+            <circle cx="80" cy="30" r="15" fill="#F15B40" opacity="0.3"/>
+            <circle cx="55" cy="50" r="30" fill="#F15B40" opacity="0.3"/>
+            <ellipse cx="55" cy="95" rx="25" ry="20" fill="#F15B40" opacity="0.3"/>
+            <circle cx="48" cy="45" r="3" fill="#0E0E0E" opacity="0.6"/>
+            <circle cx="62" cy="45" r="3" fill="#0E0E0E" opacity="0.6"/>
+            <path d="M50 55 Q55 58 60 55" stroke="#0E0E0E" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+            <circle cx="55" cy="52" r="4" fill="#0E0E0E" opacity="0.4"/>
+        </svg>`;
+    }
+
+    function createOwl() {
+        return `<svg width="100" height="110" viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="50" cy="60" rx="35" ry="40" fill="#2C9BA3" opacity="0.3"/>
+            <circle cx="35" cy="50" r="15" fill="#FAF8F5" opacity="0.5"/>
+            <circle cx="65" cy="50" r="15" fill="#FAF8F5" opacity="0.5"/>
+            <circle cx="35" cy="50" r="8" fill="#0E0E0E" opacity="0.6"/>
+            <circle cx="65" cy="50" r="8" fill="#0E0E0E" opacity="0.6"/>
+            <path d="M40 25 L30 15 M60 25 L70 15" stroke="#2C9BA3" stroke-width="4" stroke-linecap="round" opacity="0.3"/>
+            <path d="M45 70 Q50 72 55 70" fill="#F5A623" opacity="0.4"/>
+        </svg>`;
+    }
+
+    function createButterfly() {
+        return `<svg width="100" height="80" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="30" cy="30" rx="20" ry="25" fill="#E72F63" opacity="0.3"/>
+            <ellipse cx="70" cy="30" rx="20" ry="25" fill="#4A90E2" opacity="0.3"/>
+            <ellipse cx="30" cy="55" rx="15" ry="20" fill="#F5A623" opacity="0.3"/>
+            <ellipse cx="70" cy="55" rx="15" ry="20" fill="#2C9BA3" opacity="0.3"/>
+            <rect x="48" y="20" width="4" height="50" rx="2" fill="#2B3D73" opacity="0.4"/>
+            <path d="M50 20 L45 10 M50 20 L55 10" stroke="#2B3D73" stroke-width="2" opacity="0.4"/>
+        </svg>`;
+    }
+
+    function createTurtle() {
+        return `<svg width="120" height="90" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="60" cy="50" rx="40" ry="30" fill="#195E1C" opacity="0.3"/>
+            <circle cx="45" cy="45" r="5" fill="#195E1C" opacity="0.4"/>
+            <circle cx="60" cy="40" r="6" fill="#195E1C" opacity="0.4"/>
+            <circle cx="75" cy="45" r="5" fill="#195E1C" opacity="0.4"/>
+            <ellipse cx="35" cy="65" rx="10" ry="6" fill="#195E1C" opacity="0.3"/>
+            <ellipse cx="85" cy="65" rx="10" ry="6" fill="#195E1C" opacity="0.3"/>
+            <circle cx="95" cy="45" r="12" fill="#195E1C" opacity="0.3"/>
+            <circle cx="93" cy="43" r="2" fill="#0E0E0E" opacity="0.5"/>
+        </svg>`;
+    }
+
+    // Initialize parallax/animals based on device
     if (!isMobile) {
         createParallaxBackground();
+    } else {
+        createMobileAnimals();
     }
 
     // === TOUCH FEEDBACK FOR MOBILE ===
@@ -450,5 +585,149 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    console.log('🎨 Mana-style animations initialized!');
+    // === CONFETTI EFFECT ===
+    function createConfetti(x, y) {
+        const colors = ['#4A90E2', '#E72F63', '#F5A623', '#2C9BA3', '#F15B40', '#D4C5F9'];
+        const confettiCount = isMobile ? 30 : 50;
+
+        for (let i = 0; i < confettiCount; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.cssText = `
+                position: fixed;
+                width: ${Math.random() * 10 + 5}px;
+                height: ${Math.random() * 10 + 5}px;
+                background: ${colors[Math.floor(Math.random() * colors.length)]};
+                left: ${x}px;
+                top: ${y}px;
+                border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+                pointer-events: none;
+                z-index: 9999;
+                opacity: 1;
+                transform: rotate(${Math.random() * 360}deg);
+            `;
+
+            document.body.appendChild(confetti);
+
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = Math.random() * 200 + 100;
+            const vx = Math.cos(angle) * velocity;
+            const vy = Math.sin(angle) * velocity - 200;
+
+            animateConfetti(confetti, vx, vy);
+        }
+    }
+
+    function animateConfetti(element, vx, vy) {
+        let x = parseFloat(element.style.left);
+        let y = parseFloat(element.style.top);
+        let opacity = 1;
+        const gravity = 500;
+        let rotation = Math.random() * 360;
+        const rotationSpeed = Math.random() * 10 - 5;
+
+        const startTime = Date.now();
+
+        function update() {
+            const elapsed = (Date.now() - startTime) / 1000;
+
+            x += vx * elapsed / 10;
+            y += (vy + gravity * elapsed) * elapsed / 10;
+            rotation += rotationSpeed;
+            opacity = Math.max(0, 1 - elapsed);
+
+            element.style.left = x + 'px';
+            element.style.top = y + 'px';
+            element.style.opacity = opacity;
+            element.style.transform = `rotate(${rotation}deg)`;
+
+            if (opacity > 0 && y < window.innerHeight + 100) {
+                requestAnimationFrame(update);
+            } else {
+                element.remove();
+            }
+        }
+
+        requestAnimationFrame(update);
+    }
+
+    // === SPARKLE EFFECT ===
+    function createSparkle(x, y) {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        sparkle.innerHTML = '✨';
+        sparkle.style.cssText = `
+            position: fixed;
+            left: ${x}px;
+            top: ${y}px;
+            font-size: 20px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: sparkle-burst 0.8s ease-out forwards;
+        `;
+
+        document.body.appendChild(sparkle);
+        setTimeout(() => sparkle.remove(), 800);
+    }
+
+    // Add sparkle animation CSS
+    if (!document.querySelector('#sparkle-animation')) {
+        const style = document.createElement('style');
+        style.id = 'sparkle-animation';
+        style.textContent = `
+            @keyframes sparkle-burst {
+                0% {
+                    transform: scale(0) rotate(0deg);
+                    opacity: 1;
+                }
+                50% {
+                    transform: scale(1.5) rotate(180deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(0) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Add confetti on successful form submissions
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+        return originalFetch.apply(this, args).then(response => {
+            if (response.ok && args[0].includes('/api/')) {
+                // Success! Show confetti
+                setTimeout(() => {
+                    createConfetti(window.innerWidth / 2, window.innerHeight / 2);
+                }, 100);
+            }
+            return response;
+        });
+    };
+
+    // Add sparkle trail on mousemove (desktop only)
+    if (!isMobile && !isTouchDevice) {
+        let sparkleTimeout;
+        document.addEventListener('mousemove', (e) => {
+            clearTimeout(sparkleTimeout);
+            sparkleTimeout = setTimeout(() => {
+                if (Math.random() > 0.95) { // 5% chance
+                    createSparkle(e.clientX, e.clientY);
+                }
+            }, 50);
+        });
+    }
+
+    // Add confetti to quick action buttons
+    document.querySelectorAll('.btn-custom, .btn-outline-primary, .btn-outline-success').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            if (this.textContent.includes('Add') || this.textContent.includes('Log') || this.textContent.includes('Import')) {
+                createSparkle(e.clientX, e.clientY);
+            }
+        });
+    });
+
+    console.log('🎨 Mana-style animations with animals initialized! 🐘🦒🐰');
 });
