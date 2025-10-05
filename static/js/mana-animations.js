@@ -9,45 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const isMobile = window.innerWidth <= 768;
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-    // === PERFORMANCE UTILITIES ===
-    // Throttle function for scroll events (60fps optimization)
-    function throttle(func, wait = 16) {
-        let lastTime = 0;
-        return function executedFunction(...args) {
-            const now = Date.now();
-            if (now - lastTime >= wait) {
-                lastTime = now;
-                func.apply(this, args);
-            }
-        };
-    }
-
-    // Request Animation Frame scheduler for smooth 60fps animations
-    let ticking = false;
-    function optimizedScroll(callback) {
-        if (!ticking) {
-            window.requestAnimationFrame(() => {
-                callback();
-                ticking = false;
-            });
-            ticking = true;
-        }
-    }
-
-    // Intersection Observer for lazy loading animations
-    const animationObserver = new IntersectionObserver(
-        (entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-in');
-                    // Optionally unobserve after animating
-                    // animationObserver.unobserve(entry.target);
-                }
-            });
-        },
-        { threshold: 0.1, rootMargin: '50px' }
-    );
-
     // === MOBILE NAVIGATION MENU ===
     function setupMobileNav() {
         // Create mobile menu toggle button
@@ -112,65 +73,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Always setup mobile nav (CSS controls visibility)
     setupMobileNav();
-
-    // === DARK MODE TOGGLE ===
-    function setupDarkMode() {
-        // Check for saved theme preference or default to system preference
-        const savedTheme = localStorage.getItem('theme');
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
-
-        // Set initial theme
-        document.documentElement.setAttribute('data-theme', initialTheme);
-
-        // Create theme toggle button
-        const toggleBtn = document.createElement('button');
-        toggleBtn.className = 'theme-toggle';
-        toggleBtn.setAttribute('aria-label', 'Toggle dark mode');
-        toggleBtn.innerHTML = `
-            <i class="bi bi-moon-fill moon-icon"></i>
-            <i class="bi bi-sun-fill sun-icon"></i>
-        `;
-
-        document.body.appendChild(toggleBtn);
-
-        // Toggle theme
-        toggleBtn.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-
-            // Add transition class
-            document.body.classList.add('theme-transitioning');
-
-            // Update theme
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-
-            // Update aria-label
-            toggleBtn.setAttribute('aria-label',
-                newTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
-            );
-
-            // Remove transition class after animation
-            setTimeout(() => {
-                document.body.classList.remove('theme-transitioning');
-            }, 300);
-
-            // Haptic feedback for mobile
-            if ('vibrate' in navigator) {
-                navigator.vibrate(10);
-            }
-        });
-
-        // Listen for system theme changes
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-            if (!localStorage.getItem('theme')) {
-                document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-            }
-        });
-    }
-
-    setupDarkMode();
 
     // ===  PARALLAX BACKGROUND SYSTEM ===
     function createParallaxBackground() {

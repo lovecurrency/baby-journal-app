@@ -64,7 +64,7 @@
             <h4><i class="bi bi-clock-history"></i> Recent Activities</h4>
             <div>
                 <a href="{{ url_for('quick_add') }}" class="btn btn-sm btn-custom">
-                    <i class="bi bi-plus"></i> Add activity
+                    <i class="bi bi-plus"></i> Add Activity
                 </a>
                 <a href="{{ url_for('upload_whatsapp') }}" class="btn btn-sm btn-success">
                     <i class="bi bi-whatsapp"></i> Import WhatsApp
@@ -92,7 +92,7 @@
                 <p class="mb-0 text-muted">{{ activity.description[:100] }}{% if activity.description|length > 100 %}...{% endif %}</p>
                 {% if activity.amount %}
                     <small class="text-primary">
-                        Quantity: {{ activity.amount }} {{ activity.unit|default('') }}
+                        Amount: {{ activity.amount }} {{ activity.unit|default('') }}
                     </small>
                 {% endif %}
                 {% if activity.duration_minutes %}

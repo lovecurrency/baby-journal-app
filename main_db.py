@@ -47,9 +47,13 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 journal = ActivityJournal()
 processor = ActivityProcessor()
 
-# Note: Data is loaded lazily when needed, not on startup
-# This ensures faster app startup and deployment on Render
-logger.info("Application initialized - data will be loaded on first request")
+# Load existing data on startup
+try:
+    journal.load_profile()
+    journal.load_activities()
+    logger.info("Successfully loaded data from database")
+except Exception as e:
+    logger.error(f"Error loading data from database: {e}")
 
 
 @app.context_processor
@@ -125,7 +129,7 @@ def setup():
                     db_profile = db.get_profile(journal.profile.id)
 
                     if db_profile:
-                        flash('Baby profile created successfully! You can now start tracking activities.', 'success')
+                        flash(f'Baby profile created successfully! Profile ID: {journal.profile.id}', 'success')
                         logger.info(f"Profile verification successful - found in database: {db_profile}")
                     else:
                         flash('Profile appeared to save but not found in database. Please try again.', 'error')
@@ -245,7 +249,7 @@ def quick_add():
                         source='manual'
                     )
                     journal.add_activity(activity)
-                    flash("Activity added! We couldn't automatically categorize it, but you can edit it to add details.", 'info')
+                    flash('Activity added (uncategorized)', 'info')
 
                 # Reload activities to update display
                 journal.load_activities()
@@ -571,7 +575,7 @@ def api_add_activity():
     else:
         return jsonify({
             'success': False,
-            'message': "We couldn't understand that activity description. Try including keywords like 'fed', 'diaper', 'sleep', or 'nap' with quantities (e.g., '150ml', '2 hours')."
+            'message': 'Could not extract activity from message'
         }), 400
 
 
