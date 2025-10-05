@@ -9,6 +9,45 @@ document.addEventListener('DOMContentLoaded', function() {
     const isMobile = window.innerWidth <= 768;
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
+    // === PERFORMANCE UTILITIES ===
+    // Throttle function for scroll events (60fps optimization)
+    function throttle(func, wait = 16) {
+        let lastTime = 0;
+        return function executedFunction(...args) {
+            const now = Date.now();
+            if (now - lastTime >= wait) {
+                lastTime = now;
+                func.apply(this, args);
+            }
+        };
+    }
+
+    // Request Animation Frame scheduler for smooth 60fps animations
+    let ticking = false;
+    function optimizedScroll(callback) {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                callback();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }
+
+    // Intersection Observer for lazy loading animations
+    const animationObserver = new IntersectionObserver(
+        (entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                    // Optionally unobserve after animating
+                    // animationObserver.unobserve(entry.target);
+                }
+            });
+        },
+        { threshold: 0.1, rootMargin: '50px' }
+    );
+
     // === MOBILE NAVIGATION MENU ===
     function setupMobileNav() {
         // Create mobile menu toggle button

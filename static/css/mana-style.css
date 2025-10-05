@@ -1253,3 +1253,201 @@ body::before, body::after {
 .stat-card h3 {
     animation: bounce-number 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
+
+/* === ACCESSIBILITY ENHANCEMENTS === */
+
+/* Focus indicators for keyboard navigation (WCAG AA compliance) */
+a:focus,
+button:focus,
+input:focus,
+textarea:focus,
+select:focus,
+.btn:focus {
+    outline: 3px solid var(--mana-sky-blue) !important;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
+}
+
+/* Skip link styles */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0.5rem 1rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .btn {
+        border-width: 2px;
+    }
+
+    a {
+        text-decoration: underline;
+    }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* === MOBILE TOUCH TARGET OPTIMIZATION === */
+
+/* Ensure minimum 44x44px touch targets (WCAG 2.1 Level AAA) */
+@media (max-width: 768px) {
+    .btn,
+    button,
+    a.btn,
+    input[type="submit"],
+    input[type="button"] {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 0.625rem 1rem;
+    }
+
+    .btn-sm {
+        min-height: 44px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    /* Navigation buttons need larger touch targets */
+    .nav-links-wrapper .btn {
+        min-height: 48px;
+        margin: 0.25rem;
+    }
+
+    /* Form inputs */
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    /* Checkbox and radio increased size */
+    input[type="checkbox"],
+    input[type="radio"] {
+        min-width: 24px;
+        min-height: 24px;
+    }
+
+    /* Close buttons */
+    .btn-close {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 0.5rem;
+    }
+
+    /* Card action buttons */
+    .activity-card .btn,
+    .stat-card .btn {
+        min-height: 44px;
+        padding: 0.625rem 1.25rem;
+    }
+}
+
+/* === PERFORMANCE OPTIMIZATIONS === */
+
+/* GPU acceleration for animations */
+.floating-animal,
+.stat-card,
+.activity-card {
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* Optimize font rendering */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Prevent layout shift from images */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* === COLOR CONTRAST IMPROVEMENTS (WCAG AA) === */
+
+/* Ensure text contrast ratios meet WCAG AA standards (4.5:1 for normal text) */
+.text-muted {
+    color: #6c757d !important; /* Improved from default Bootstrap */
+}
+
+.btn-outline-secondary {
+    color: #495057;
+    border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+/* Badge contrast improvements */
+.badge {
+    font-weight: 600;
+    padding: 0.35em 0.65em;
+}
+
+.badge.bg-light {
+    color: #212529 !important;
+    background-color: #e9ecef !important;
+}
+
+/* Alert contrast */
+.alert {
+    border-width: 1px;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
