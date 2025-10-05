@@ -6,7 +6,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3><i class="bi bi-list-ul"></i> All Activities</h3>
     <a href="{{ url_for('quick_add') }}" class="btn btn-custom">
-        <i class="bi bi-plus"></i> Add Activity
+        <i class="bi bi-plus"></i> Add activity
     </a>
 </div>
 
@@ -62,11 +62,11 @@
             <!-- Action Buttons -->
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary" style="border-radius: 8px;">
-                    <i class="bi bi-check-lg"></i> Apply Filters
+                    <i class="bi bi-check-lg"></i> Apply filters
                 </button>
                 {% if selected_date_from or selected_date_to or selected_category or selected_activity_type %}
                 <a href="{{ url_for('activities') }}" class="btn btn-light" style="border-radius: 8px;">
-                    <i class="bi bi-x-lg"></i> Clear Filters
+                    <i class="bi bi-x-lg"></i> Clear filters
                 </a>
                 {% endif %}
             </div>
