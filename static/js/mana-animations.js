@@ -574,16 +574,130 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.opacity = '1';
     }, 100);
 
-    // === PARALLAX SCROLL EFFECT ===
+    // === ENHANCED PARALLAX SCROLL EFFECT WITH DEPTH & VELOCITY ===
+    let lastScrollTop = 0;
+    let scrollVelocity = 0;
+    let ticking = false;
+
+    // Respect user's motion preferences
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     window.addEventListener('scroll', function() {
+        if (prefersReducedMotion || window.innerWidth <= 768) return;
+
+        // Calculate scroll velocity
+        const scrollTop = window.pageYOffset;
+        scrollVelocity = scrollTop - lastScrollTop;
+        lastScrollTop = scrollTop;
+
+        if (!ticking) {
+            requestAnimationFrame(updateParallax);
+            ticking = true;
+        }
+    }, { passive: true });
+
+    function updateParallax() {
         const scrolled = window.pageYOffset;
+        const windowHeight = window.innerHeight;
         const parallaxElements = document.querySelectorAll('.floating-element');
 
         parallaxElements.forEach((el, index) => {
-            const speed = (index + 1) * 0.5;
-            el.style.transform = `translateY(${scrolled * speed}px)`;
+            const rect = el.getBoundingClientRect();
+            const elementCenter = rect.top + rect.height / 2;
+
+            // Calculate viewport position (0 = top, 1 = bottom)
+            const viewportPosition = (elementCenter / windowHeight);
+
+            // Depth layers (3 layers based on index)
+            const layer = index % 3;
+            let depthSpeed;
+            if (layer === 0) depthSpeed = 0.15; // Background - slowest
+            else if (layer === 1) depthSpeed = 0.35; // Middle
+            else depthSpeed = 0.6; // Foreground - fastest
+
+            // Vertical parallax
+            const parallaxY = scrolled * depthSpeed;
+
+            // Horizontal drift (alternating directions for variety)
+            const driftDirection = index % 2 === 0 ? 1 : -1;
+            const parallaxX = Math.sin(scrolled * 0.001 + index) * 30 * driftDirection;
+
+            // Rotation based on scroll (subtle, max ±12 degrees)
+            const rotation = (scrolled * 0.02 + index * 10) % 360;
+            const boundedRotation = Math.sin(rotation * Math.PI / 180) * 12;
+
+            // Scale based on viewport position (slightly larger when centered)
+            const distanceFromCenter = Math.abs(viewportPosition - 0.5);
+            const scale = 1.5 + (0.2 * (1 - distanceFromCenter * 2));
+
+            // Opacity based on viewport position (fade when near edges)
+            let opacity = 0.5;
+            if (viewportPosition < 0.1 || viewportPosition > 1.2) {
+                opacity = 0.2; // Fade out when near top/bottom
+            } else if (viewportPosition > 0.3 && viewportPosition < 0.9) {
+                opacity = 0.6; // More visible in center zone
+            }
+
+            // Velocity-based movement (more dramatic when scrolling fast)
+            const velocityEffect = Math.min(Math.abs(scrollVelocity) * 0.5, 20);
+            const velocityDirection = scrollVelocity > 0 ? 1 : -1;
+
+            // Apply all transforms
+            el.style.transform = `
+                translate(${parallaxX}px, ${parallaxY + (velocityEffect * velocityDirection)}px)
+                rotate(${boundedRotation}deg)
+                scale(${scale})
+            `;
+            el.style.opacity = opacity;
+            el.style.transition = 'opacity 0.3s ease';
         });
-    });
+
+        ticking = false;
+    }
+
+    // Initial parallax setup
+    if (!prefersReducedMotion && window.innerWidth > 768) {
+        updateParallax();
+    }
+
+    // === MOBILE SCROLL ANIMATIONS (SUBTLE) ===
+    if (isMobile && !prefersReducedMotion) {
+        let mobileScrollTicking = false;
+
+        window.addEventListener('scroll', function() {
+            if (!mobileScrollTicking) {
+                requestAnimationFrame(updateMobileAnimals);
+                mobileScrollTicking = true;
+            }
+        }, { passive: true });
+
+        function updateMobileAnimals() {
+            const scrolled = window.pageYOffset;
+            const mobileAnimals = document.querySelectorAll('.mobile-floating-animal');
+
+            mobileAnimals.forEach((animal, index) => {
+                // Very subtle parallax for mobile (performance-friendly)
+                const speed = 0.1 + (index * 0.05);
+                const yOffset = scrolled * speed;
+
+                // Gentle horizontal sway
+                const sway = Math.sin(scrolled * 0.002 + index) * 10;
+
+                // Slight rotation
+                const rotation = Math.sin(scrolled * 0.003 + index) * 3;
+
+                animal.style.transform = `
+                    translate(${sway}px, ${yOffset}px)
+                    rotate(${rotation}deg)
+                `;
+            });
+
+            mobileScrollTicking = false;
+        }
+
+        // Initialize mobile animals position
+        updateMobileAnimals();
+    }
 
     // === CONFETTI EFFECT ===
     function createConfetti(x, y) {

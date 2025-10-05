@@ -96,6 +96,8 @@ body {
     animation: float-gentle 20s ease-in-out infinite;
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
     transform: scale(1.5);
+    will-change: transform, opacity;
+    transition: transform 0.1s ease-out;
 }
 
 /* Cloud */
@@ -1134,6 +1136,8 @@ body::after {
     opacity: 0.35;
     animation: float-animal 20s ease-in-out infinite;
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+    will-change: transform;
+    transition: transform 0.1s ease-out;
 }
 
 .mobile-floating-animal:nth-child(1) {
