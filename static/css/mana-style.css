@@ -933,7 +933,7 @@ body::after {
 .text-mana-charcoal { color: var(--mana-charcoal) !important; }
 .text-mana-blue { color: var(--mana-sky-blue) !important; }
 .text-mana-coral { color: var(--mana-coral) !important; }
-.text-mana-green { color: --mana-green) !important; }
+.text-mana-green { color: var(--mana-green) !important; }
 
 .bg-mana-cream { background-color: var(--mana-cream) !important; }
 .bg-mana-light-cream { background-color: var(--mana-light-cream) !important; }

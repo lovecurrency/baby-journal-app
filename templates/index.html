@@ -92,7 +92,7 @@
                 <p class="mb-0 text-muted">{{ activity.description[:100] }}{% if activity.description|length > 100 %}...{% endif %}</p>
                 {% if activity.amount %}
                     <small class="text-primary">
-                        Amount: {{ activity.amount }} {{ activity.unit|default('') }}
+                        Quantity: {{ activity.amount }} {{ activity.unit|default('') }}
                     </small>
                 {% endif %}
                 {% if activity.duration_minutes %}
