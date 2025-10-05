@@ -23,6 +23,13 @@
     <!-- Main styles: Load immediately -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mana-style.css') }}">
 
+    <!-- PWA Support -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192x192.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Baby Journal">
+
     {% block extra_css %}{% endblock %}
 
     <!-- Inline Critical CSS for above-the-fold content -->
@@ -114,6 +121,70 @@
     <!-- Performance: Defer non-critical scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" defer></script>
     <script src="{{ url_for('static', filename='js/mana-animations.js') }}" defer></script>
+
+    <!-- PWA: Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker registered:', registration.scope);
+
+                        // Check for updates periodically
+                        setInterval(() => {
+                            registration.update();
+                        }, 60000); // Check every minute
+                    })
+                    .catch(error => {
+                        console.log('❌ Service Worker registration failed:', error);
+                    });
+            });
+
+            // Listen for service worker updates
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload();
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // Show custom install button
+            const installBtn = document.createElement('button');
+            installBtn.className = 'install-prompt';
+            installBtn.innerHTML = `
+                <i class="bi bi-download"></i>
+                <span>Install App</span>
+            `;
+            installBtn.setAttribute('aria-label', 'Install Baby Journal as an app');
+
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User ${outcome === 'accepted' ? 'accepted' : 'dismissed'} the install prompt`);
+                    deferredPrompt = null;
+                    installBtn.remove();
+                }
+            });
+
+            // Add to page after a delay
+            setTimeout(() => {
+                document.body.appendChild(installBtn);
+            }, 3000);
+        });
+
+        // Track if app is running as PWA
+        if (window.matchMedia('(display-mode: standalone)').matches ||
+            window.navigator.standalone === true) {
+            console.log('📱 Running as installed PWA');
+            document.documentElement.classList.add('pwa-mode');
+        }
+    </script>
+
     {% block extra_js %}{% endblock %}
 
     <!-- Accessibility: Announce page changes to screen readers -->
