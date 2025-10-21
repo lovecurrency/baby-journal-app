@@ -91,7 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
             createTeddyBear(),
             createOwl(),
             createButterfly(),
-            createTurtle()
+            createTurtle(),
+            createBalloon()
         ];
 
         svgs.forEach((svg, index) => {
@@ -244,6 +245,15 @@ document.addEventListener('DOMContentLoaded', function() {
             <ellipse cx="85" cy="65" rx="10" ry="6" fill="#195E1C" opacity="0.7"/>
             <circle cx="95" cy="45" r="12" fill="#195E1C" opacity="0.7"/>
             <circle cx="93" cy="43" r="2" fill="#0E0E0E" opacity="0.9"/>
+        </svg>`;
+    }
+
+    function createBalloon() {
+        return `<svg width="90" height="140" viewBox="0 0 90 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="45" cy="45" rx="32" ry="38" fill="#E72F63" opacity="0.7"/>
+            <ellipse cx="38" cy="35" rx="8" ry="12" fill="#FAF8F5" opacity="0.3"/>
+            <path d="M45 83 Q42 95 40 110 Q38 120 45 130" stroke="#2B3D73" stroke-width="2" fill="none" opacity="0.6"/>
+            <path d="M40 110 L35 120 L45 118 L40 110" fill="#E72F63" opacity="0.5"/>
         </svg>`;
     }
 

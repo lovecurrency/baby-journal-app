@@ -172,6 +172,12 @@ body {
     right: 5%;
 }
 
+/* Balloon */
+.floating-element:nth-child(12) {
+    top: 45%;
+    right: 45%;
+}
+
 @keyframes float-gentle {
     0%, 100% {
         transform: translate(0, 0) rotate(0deg) scale(1.5);
