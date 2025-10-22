@@ -1,0 +1,253 @@
+/**
+ * Daily Activities Widget Styles
+ * Beautiful cards with progress tracking and celebrations
+ */
+
+/* Activity Cards */
+.activity-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border-left: 5px solid transparent;
+}
+
+.activity-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.activity-card.completed {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 100%);
+    border-left-color: #4caf50;
+}
+
+.activity-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-header h5 {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.progress-container {
+    margin: 15px 0;
+}
+
+.progress-text {
+    font-size: 1.1rem;
+    color: #2c3e50;
+}
+
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+    border-radius: 10px;
+}
+
+.motivational-message {
+    font-weight: 500;
+    font-size: 0.95rem;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-mark-done {
+    font-weight: 600;
+    padding: 10px 30px;
+    border-radius: 25px;
+    transition: all 0.3s;
+}
+
+.btn-mark-done:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Celebration Modal */
+.celebration-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.celebration-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 500px;
+    position: relative;
+    animation: celebrationBounce 0.6s ease;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes celebrationBounce {
+    0% {
+        transform: scale(0.3) rotate(-10deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05) rotate(5deg);
+    }
+    100% {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+    }
+}
+
+.celebration-content h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #4caf50;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.celebration-content p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    line-height: 1.6;
+    color: #2c3e50;
+}
+
+/* Confetti Animation */
+.confetti-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -20px;
+    animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+    to {
+        transform: translateY(600px) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Today's Activities Section */
+#todayActivitiesSection {
+    margin-bottom: 30px;
+}
+
+#todayActivitiesSection h3 {
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+/* Streak Badge */
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 15px;
+}
+
+/* Details Summary */
+details summary {
+    outline: none;
+    transition: color 0.3s;
+}
+
+details summary:hover {
+    color: #007bff !important;
+}
+
+details[open] summary {
+    margin-bottom: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .activity-card {
+        padding: 15px;
+    }
+
+    .activity-icon i {
+        font-size: 2rem !important;
+    }
+
+    .celebration-content {
+        padding: 30px 20px;
+        max-width: 90%;
+    }
+
+    .celebration-content h2 {
+        font-size: 2rem;
+    }
+
+    .celebration-content p {
+        font-size: 1rem;
+    }
+}
+
+/* Loading State */
+.activity-loading {
+    text-align: center;
+    padding: 40px;
+}
+
+.activity-loading .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    color: #6c5ce7;
+}

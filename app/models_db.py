@@ -24,6 +24,138 @@ class ReminderType(Enum):
 
 
 @dataclass
+class DailyActivityGoal:
+    """Represents an age-appropriate daily activity goal."""
+    activity_key: str
+    activity_title: str
+    activity_category: str
+    age_range_min: int
+    age_range_max: int
+    target_count: int
+    activity_description: Optional[str] = None
+    duration_minutes: Optional[int] = None
+    icon: Optional[str] = None
+    color: Optional[str] = None
+    motivational_messages: Optional[Dict] = None
+    completion_message: Optional[str] = None
+    benefits: Optional[str] = None
+    enabled: bool = True
+    priority: int = 1
+    id: Optional[str] = None
+    profile_id: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    def __post_init__(self):
+        """Generate unique ID if not provided."""
+        if self.id is None:
+            self.id = str(uuid.uuid4())
+
+    def to_dict(self) -> Dict:
+        """Convert goal to dictionary."""
+        return {
+            'id': self.id,
+            'profile_id': self.profile_id,
+            'activity_key': self.activity_key,
+            'activity_title': self.activity_title,
+            'activity_description': self.activity_description,
+            'activity_category': self.activity_category,
+            'age_range_min': self.age_range_min,
+            'age_range_max': self.age_range_max,
+            'target_count': self.target_count,
+            'duration_minutes': self.duration_minutes,
+            'icon': self.icon,
+            'color': self.color,
+            'motivational_messages': self.motivational_messages,
+            'completion_message': self.completion_message,
+            'benefits': self.benefits,
+            'enabled': self.enabled,
+            'priority': self.priority,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+    @classmethod
+    def from_db_row(cls, row: Dict) -> 'DailyActivityGoal':
+        """Create goal from database row."""
+        return cls(
+            id=str(row['id']),
+            profile_id=str(row['profile_id']),
+            activity_key=row['activity_key'],
+            activity_title=row['activity_title'],
+            activity_description=row['activity_description'],
+            activity_category=row['activity_category'],
+            age_range_min=row['age_range_min'],
+            age_range_max=row['age_range_max'],
+            target_count=row['target_count'],
+            duration_minutes=row['duration_minutes'],
+            icon=row['icon'],
+            color=row['color'],
+            motivational_messages=row['motivational_messages'],
+            completion_message=row['completion_message'],
+            benefits=row['benefits'],
+            enabled=row['enabled'],
+            priority=row['priority'],
+            created_at=row['created_at'],
+            updated_at=row['updated_at']
+        )
+
+
+@dataclass
+class DailyActivityProgress:
+    """Represents daily progress for an activity goal."""
+    goal_id: str
+    profile_id: str
+    activity_date: datetime
+    current_count: int = 0
+    completed: bool = False
+    completed_at: Optional[datetime] = None
+    streak_days: int = 0
+    notes: Optional[str] = None
+    id: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    def __post_init__(self):
+        """Generate unique ID if not provided."""
+        if self.id is None:
+            self.id = str(uuid.uuid4())
+
+    def to_dict(self) -> Dict:
+        """Convert progress to dictionary."""
+        return {
+            'id': self.id,
+            'goal_id': self.goal_id,
+            'profile_id': self.profile_id,
+            'activity_date': self.activity_date.date().isoformat() if isinstance(self.activity_date, datetime) else self.activity_date.isoformat(),
+            'current_count': self.current_count,
+            'completed': self.completed,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'streak_days': self.streak_days,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+    @classmethod
+    def from_db_row(cls, row: Dict) -> 'DailyActivityProgress':
+        """Create progress from database row."""
+        return cls(
+            id=str(row['id']),
+            goal_id=str(row['goal_id']),
+            profile_id=str(row['profile_id']),
+            activity_date=row['activity_date'],
+            current_count=row['current_count'],
+            completed=row['completed'],
+            completed_at=row['completed_at'],
+            streak_days=row['streak_days'],
+            notes=row['notes'],
+            created_at=row['created_at'],
+            updated_at=row['updated_at']
+        )
+
+
+@dataclass
 class BabyActivity:
     """Represents a single baby activity with database persistence."""
     timestamp: datetime

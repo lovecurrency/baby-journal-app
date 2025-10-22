@@ -1632,6 +1632,189 @@ def api_upload_whatsapp():
         }), 500
 
 
+# Daily Activity Tracking Routes
+@app.route('/api/daily-activities/initialize', methods=['POST'])
+def initialize_daily_activities():
+    """Initialize age-appropriate daily activities for baby."""
+    if not journal.profile:
+        journal.load_profile()
+
+    if not journal.profile:
+        return jsonify({'success': False, 'message': 'No profile found'}), 404
+
+    try:
+        from app.daily_activity_templates import get_activities_for_age
+        import json
+
+        age_months = int(journal.profile.age_months)
+        activities = get_activities_for_age(age_months)
+
+        db = get_db_service()
+        created_count = 0
+
+        for activity in activities:
+            goal_id = db.create_daily_activity_goal(
+                profile_id=journal.profile.id,
+                activity_key=activity['activity_key'],
+                activity_title=activity['activity_title'],
+                activity_description=activity['activity_description'],
+                activity_category=activity['activity_category'],
+                age_range_min=activity['age_range_min'],
+                age_range_max=activity['age_range_max'],
+                target_count=activity['target_count'],
+                duration_minutes=activity.get('duration_minutes'),
+                icon=activity.get('icon'),
+                color=activity.get('color'),
+                motivational_messages=activity.get('motivational_messages', {}),
+                completion_message=activity.get('completion_message'),
+                benefits=activity.get('benefits'),
+                priority=activity.get('priority', 1)
+            )
+            if goal_id:
+                created_count += 1
+
+        return jsonify({
+            'success': True,
+            'message': f'Initialized {created_count} activities for {age_months} months old',
+            'count': created_count
+        })
+
+    except Exception as e:
+        logger.error(f"Error initializing daily activities: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/daily-activities/progress', methods=['GET'])
+def get_daily_progress():
+    """Get today's activity progress."""
+    if not journal.profile:
+        journal.load_profile()
+
+    if not journal.profile:
+        return jsonify({'activities': []})
+
+    try:
+        db = get_db_service()
+        age_months = int(journal.profile.age_months)
+
+        # Get age-appropriate goals
+        goals = db.get_daily_activity_goals_for_age(journal.profile.id, age_months)
+
+        # Get today's progress
+        progress_rows = db.get_daily_activity_progress(journal.profile.id)
+        progress_map = {p['goal_id']: p for p in progress_rows}
+
+        # Combine goals with progress
+        activities = []
+        for goal in goals:
+            progress = progress_map.get(str(goal['id']), {})
+
+            from app.daily_activity_templates import get_motivational_message
+            import json
+
+            current_count = progress.get('current_count', 0)
+            target_count = goal['target_count']
+            completed = progress.get('completed', False)
+
+            # Parse motivational messages
+            motivational_messages = goal['motivational_messages']
+            if isinstance(motivational_messages, str):
+                motivational_messages = json.loads(motivational_messages)
+            if isinstance(motivational_messages, dict):
+                # Convert string keys to int
+                motivational_messages = {int(k): v for k, v in motivational_messages.items()}
+
+            message = get_motivational_message(
+                motivational_messages,
+                current_count,
+                journal.profile.name
+            )
+
+            activities.append({
+                'id': str(goal['id']),
+                'activity_key': goal['activity_key'],
+                'activity_title': goal['activity_title'],
+                'activity_description': goal['activity_description'],
+                'activity_category': goal['activity_category'],
+                'target_count': target_count,
+                'current_count': current_count,
+                'completed': completed,
+                'streak_days': progress.get('streak_days', 0),
+                'duration_minutes': goal['duration_minutes'],
+                'icon': goal['icon'],
+                'color': goal['color'],
+                'message': message,
+                'completion_message': goal['completion_message'],
+                'benefits': goal['benefits']
+            })
+
+        return jsonify({'activities': activities})
+
+    except Exception as e:
+        logger.error(f"Error getting daily progress: {e}")
+        return jsonify({'activities': [], 'error': str(e)})
+
+
+@app.route('/api/daily-activities/<goal_id>/mark-done', methods=['POST'])
+def mark_activity_done(goal_id):
+    """Mark an activity as done (increment counter)."""
+    if not journal.profile:
+        journal.load_profile()
+
+    if not journal.profile:
+        return jsonify({'success': False, 'message': 'No profile found'}), 404
+
+    try:
+        db = get_db_service()
+        progress = db.increment_activity_progress(goal_id, journal.profile.id)
+
+        if progress:
+            from app.daily_activity_templates import get_motivational_message, get_completion_message
+            import json
+
+            # Parse motivational messages
+            motivational_messages = progress['motivational_messages']
+            if isinstance(motivational_messages, str):
+                motivational_messages = json.loads(motivational_messages)
+            if isinstance(motivational_messages, dict):
+                motivational_messages = {int(k): v for k, v in motivational_messages.items()}
+
+            current_count = progress['current_count']
+            target_count = progress['target_count']
+            completed = progress['completed']
+
+            message = get_motivational_message(
+                motivational_messages,
+                current_count,
+                journal.profile.name
+            )
+
+            response = {
+                'success': True,
+                'current_count': current_count,
+                'target_count': target_count,
+                'completed': completed,
+                'message': message,
+                'streak_days': progress.get('streak_days', 0)
+            }
+
+            # If just completed, add celebration message
+            if completed and current_count == target_count:
+                response['celebration'] = True
+                response['celebration_message'] = get_completion_message(
+                    progress['completion_message'],
+                    journal.profile.name
+                )
+
+            return jsonify(response)
+        else:
+            return jsonify({'success': False, 'message': 'Failed to update progress'}), 500
+
+    except Exception as e:
+        logger.error(f"Error marking activity done: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 # Reminder routes
 @app.route('/reminders')
 def reminders():
