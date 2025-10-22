@@ -42,6 +42,9 @@
                     <a href="{{ url_for('daily_activities') }}" class="btn btn-sm btn-outline-purple mx-1" style="border-color: #a29bfe; color: #6c5ce7;">
                         <i class="bi bi-stars"></i> Daily Activities
                     </a>
+                    <a href="{{ url_for('reminders') }}" class="btn btn-sm btn-outline-danger mx-1">
+                        <i class="bi bi-bell-fill"></i> Reminders
+                    </a>
                     <a href="{{ url_for('setup') }}" class="btn btn-sm btn-outline-dark mx-1">
                         <i class="bi bi-gear"></i> Setup
                     </a>
@@ -67,6 +70,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/mana-animations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

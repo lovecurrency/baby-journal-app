@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Reminders - Baby Journal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reminder-card {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .reminder-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .reminder-card.disabled {
+        opacity: 0.6;
+        background: linear-gradient(135deg, #e0e0e0 0%, #b0b0b0 100%);
+    }
+
+    .reminder-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-right: 8px;
+    }
+
+    .badge-recurring {
+        background-color: #74b9ff;
+        color: white;
+    }
+
+    .badge-scheduled {
+        background-color: #a29bfe;
+        color: white;
+    }
+
+    .badge-activity-based {
+        background-color: #fd79a8;
+        color: white;
+    }
+
+    .category-icon {
+        font-size: 2rem;
+        margin-right: 15px;
+    }
+
+    .new-reminder-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: 2px dashed rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        text-align: center;
+        padding: 40px 20px;
+        min-height: 150px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .new-reminder-card:hover {
+        border-color: white;
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    .reminder-form {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-section {
+        display: none;
+    }
+
+    .form-section.active {
+        display: block;
+    }
+
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+        background-color: #4CAF50;
+    }
+
+    input:checked + .toggle-slider:before {
+        transform: translateX(26px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <h2 class="mb-4">
+        <i class="bi bi-bell-fill text-primary"></i> Activity Reminders
+    </h2>
+
+    <!-- Add New Reminder Button -->
+    <div class="reminder-card new-reminder-card mb-4" onclick="toggleReminderForm()">
+        <i class="bi bi-plus-circle" style="font-size: 3rem; margin-bottom: 10px;"></i>
+        <h4>Create New Reminder</h4>
+        <p class="mb-0">Set up reminders for baby activities</p>
+    </div>
+
+    <!-- New Reminder Form (Hidden by default) -->
+    <div id="reminderForm" class="reminder-form" style="display: none;">
+        <h4 class="mb-3"><i class="bi bi-plus-square"></i> New Reminder</h4>
+        <form action="{{ url_for('create_reminder') }}" method="POST" id="createReminderForm">
+            <!-- Basic Info -->
+            <div class="mb-3">
+                <label for="title" class="form-label">Reminder Title *</label>
+                <input type="text" class="form-control" id="title" name="title"
+                       placeholder="e.g., Feed Baby" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="activity_category" class="form-label">Activity Category *</label>
+                <select class="form-select" id="activity_category" name="activity_category" required>
+                    <option value="">Choose category...</option>
+                    {% for category in categories %}
+                    <option value="{{ category }}">{{ category.capitalize() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="message" class="form-label">Message</label>
+                <textarea class="form-control" id="message" name="message" rows="2"
+                          placeholder="Optional message to display with notification"></textarea>
+            </div>
+
+            <!-- Reminder Type -->
+            <div class="mb-3">
+                <label for="reminder_type" class="form-label">Reminder Type *</label>
+                <select class="form-select" id="reminder_type" name="reminder_type"
+                        onchange="showReminderTypeFields()" required>
+                    <option value="">Choose type...</option>
+                    <option value="recurring">Recurring (Every X hours)</option>
+                    <option value="scheduled">Scheduled (Daily at specific time)</option>
+                    <option value="activity_based">Activity-Based (If no activity in X hours)</option>
+                </select>
+            </div>
+
+            <!-- Recurring Fields -->
+            <div id="recurringFields" class="form-section">
+                <div class="mb-3">
+                    <label for="recurrence_hours" class="form-label">Repeat Every (hours) *</label>
+                    <input type="number" class="form-control" id="recurrence_hours"
+                           name="recurrence_hours" min="1" max="24" step="1"
+                           placeholder="e.g., 3">
+                    <small class="text-muted">How often to repeat this reminder</small>
+                </div>
+            </div>
+
+            <!-- Scheduled Fields -->
+            <div id="scheduledFields" class="form-section">
+                <div class="mb-3">
+                    <label for="scheduled_time" class="form-label">Time *</label>
+                    <input type="time" class="form-control" id="scheduled_time" name="scheduled_time">
+                    <small class="text-muted">Daily reminder at this time</small>
+                </div>
+            </div>
+
+            <!-- Activity-Based Fields -->
+            <div id="activityBasedFields" class="form-section">
+                <div class="mb-3">
+                    <label for="last_activity_hours" class="form-label">Hours Since Last Activity *</label>
+                    <input type="number" class="form-control" id="last_activity_hours"
+                           name="last_activity_hours" min="1" max="48" step="1"
+                           placeholder="e.g., 4">
+                    <small class="text-muted">Remind if no activity of this type for X hours</small>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary" onclick="toggleReminderForm()">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Create Reminder
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Existing Reminders -->
+    <h4 class="mt-4 mb-3">Your Reminders</h4>
+
+    {% if reminders %}
+        {% for reminder in reminders %}
+        <div class="reminder-card {% if not reminder.enabled %}disabled{% endif %}"
+             id="reminder-{{ reminder.id }}">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="category-icon">
+                            {% if reminder.activity_category.value == 'feeding' %}
+                                <i class="bi bi-droplet-fill text-info"></i>
+                            {% elif reminder.activity_category.value == 'diaper' %}
+                                <i class="bi bi-circle text-warning"></i>
+                            {% elif reminder.activity_category.value == 'sleep' %}
+                                <i class="bi bi-moon-stars-fill text-primary"></i>
+                            {% elif reminder.activity_category.value == 'health' %}
+                                <i class="bi bi-heart-pulse text-danger"></i>
+                            {% else %}
+                                <i class="bi bi-star-fill text-secondary"></i>
+                            {% endif %}
+                        </span>
+                        <div>
+                            <h5 class="mb-1">{{ reminder.title }}</h5>
+                            <div>
+                                <span class="reminder-badge badge-{{ reminder.reminder_type.value.replace('_', '-') }}">
+                                    {{ reminder.reminder_type.value.replace('_', ' ').title() }}
+                                </span>
+                                <span class="badge bg-secondary">
+                                    {{ reminder.activity_category.value.capitalize() }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if reminder.message %}
+                    <p class="mb-2 text-muted">
+                        <i class="bi bi-chat-quote"></i> {{ reminder.message }}
+                    </p>
+                    {% endif %}
+
+                    <div class="small text-muted">
+                        {% if reminder.reminder_type.value == 'recurring' %}
+                            <i class="bi bi-arrow-repeat"></i> Every {{ reminder.recurrence_hours }} hour(s)
+                        {% elif reminder.reminder_type.value == 'scheduled' %}
+                            <i class="bi bi-clock"></i> Daily at {{ reminder.scheduled_time }}
+                        {% elif reminder.reminder_type.value == 'activity_based' %}
+                            <i class="bi bi-hourglass"></i> If no activity for {{ reminder.last_activity_hours }} hour(s)
+                        {% endif %}
+
+                        {% if reminder.last_triggered_at %}
+                            <br><i class="bi bi-calendar-check"></i> Last triggered: {{ reminder.last_triggered_at.strftime('%Y-%m-%d %H:%M') }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column align-items-end gap-2">
+                    <!-- Toggle Switch -->
+                    <label class="toggle-switch" title="Enable/Disable">
+                        <input type="checkbox" {% if reminder.enabled %}checked{% endif %}
+                               onchange="toggleReminder('{{ reminder.id }}', this)">
+                        <span class="toggle-slider"></span>
+                    </label>
+
+                    <!-- Delete Button -->
+                    <button class="btn btn-sm btn-outline-danger"
+                            onclick="deleteReminder('{{ reminder.id }}')"
+                            title="Delete Reminder">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No reminders yet. Click "Create New Reminder" above to get started!
+        </div>
+    {% endif %}
+
+    <!-- Info Section -->
+    <div class="alert alert-light mt-4">
+        <h6><i class="bi bi-lightbulb"></i> How Reminders Work</h6>
+        <ul class="mb-0 small">
+            <li><strong>Recurring:</strong> Get notified every X hours (e.g., feed baby every 3 hours)</li>
+            <li><strong>Scheduled:</strong> Get notified daily at a specific time (e.g., bedtime at 8:00 PM)</li>
+            <li><strong>Activity-Based:</strong> Get notified if no activity for X hours (e.g., remind if no feeding in 4 hours)</li>
+        </ul>
+        <p class="mb-0 mt-2 small text-muted">
+            <i class="bi bi-bell"></i> Enable browser notifications for the best experience!
+        </p>
+    </div>
+</div>
+
+<script>
+function toggleReminderForm() {
+    const form = document.getElementById('reminderForm');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        form.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        form.style.display = 'none';
+        document.getElementById('createReminderForm').reset();
+        hideAllReminderTypeFields();
+    }
+}
+
+function showReminderTypeFields() {
+    const reminderType = document.getElementById('reminder_type').value;
+
+    // Hide all sections first
+    hideAllReminderTypeFields();
+
+    // Show relevant section
+    if (reminderType === 'recurring') {
+        document.getElementById('recurringFields').classList.add('active');
+        document.getElementById('recurrence_hours').required = true;
+    } else if (reminderType === 'scheduled') {
+        document.getElementById('scheduledFields').classList.add('active');
+        document.getElementById('scheduled_time').required = true;
+    } else if (reminderType === 'activity_based') {
+        document.getElementById('activityBasedFields').classList.add('active');
+        document.getElementById('last_activity_hours').required = true;
+    }
+}
+
+function hideAllReminderTypeFields() {
+    document.querySelectorAll('.form-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    document.getElementById('recurrence_hours').required = false;
+    document.getElementById('scheduled_time').required = false;
+    document.getElementById('last_activity_hours').required = false;
+}
+
+function toggleReminder(reminderId, checkbox) {
+    fetch(`/reminders/${reminderId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const card = document.getElementById(`reminder-${reminderId}`);
+            if (data.enabled) {
+                card.classList.remove('disabled');
+            } else {
+                card.classList.add('disabled');
+            }
+        } else {
+            checkbox.checked = !checkbox.checked;
+            alert('Failed to toggle reminder: ' + data.message);
+        }
+    })
+    .catch(error => {
+        checkbox.checked = !checkbox.checked;
+        alert('Error toggling reminder: ' + error);
+    });
+}
+
+function deleteReminder(reminderId) {
+    if (!confirm('Are you sure you want to delete this reminder?')) {
+        return;
+    }
+
+    fetch(`/reminders/${reminderId}/delete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const card = document.getElementById(`reminder-${reminderId}`);
+            card.style.transition = 'opacity 0.3s, transform 0.3s';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                card.remove();
+                location.reload();
+            }, 300);
+        } else {
+            alert('Failed to delete reminder: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error deleting reminder: ' + error);
+    });
+}
+</script>
+{% endblock %}
