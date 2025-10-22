@@ -543,6 +543,228 @@ class DatabaseService:
             logger.error(f"Error updating reminder last_triggered_at: {e}")
             return False
 
+    # Daily Activity Goal operations
+    def create_daily_activity_goal(self, profile_id: str, activity_key: str, activity_title: str,
+                                   activity_category: str, age_range_min: int, age_range_max: int,
+                                   target_count: int, **kwargs) -> str:
+        """Create a daily activity goal."""
+        import json
+
+        query = """
+        INSERT INTO daily_activity_goals
+        (profile_id, activity_key, activity_title, activity_description, activity_category,
+         age_range_min, age_range_max, target_count, duration_minutes, icon, color,
+         motivational_messages, completion_message, benefits, enabled, priority)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (profile_id, activity_key) DO UPDATE SET
+        activity_title = EXCLUDED.activity_title,
+        activity_description = EXCLUDED.activity_description,
+        target_count = EXCLUDED.target_count,
+        duration_minutes = EXCLUDED.duration_minutes,
+        motivational_messages = EXCLUDED.motivational_messages,
+        completion_message = EXCLUDED.completion_message,
+        benefits = EXCLUDED.benefits,
+        updated_at = CURRENT_TIMESTAMP
+        RETURNING id;
+        """
+
+        # Convert motivational_messages dict to JSON
+        motivational_messages = kwargs.get('motivational_messages', {})
+        if isinstance(motivational_messages, dict):
+            motivational_messages = json.dumps(motivational_messages)
+
+        params = (
+            profile_id, activity_key, activity_title,
+            kwargs.get('activity_description'),
+            activity_category, age_range_min, age_range_max, target_count,
+            kwargs.get('duration_minutes'),
+            kwargs.get('icon'),
+            kwargs.get('color'),
+            motivational_messages,
+            kwargs.get('completion_message'),
+            kwargs.get('benefits'),
+            kwargs.get('enabled', True),
+            kwargs.get('priority', 1)
+        )
+
+        try:
+            result = self.db.execute_insert_returning(query, params)
+            return str(result) if result else None
+        except Exception as e:
+            logger.error(f"Error creating daily activity goal: {e}")
+            return None
+
+    def get_daily_activity_goals_for_age(self, profile_id: str, age_months: int) -> List[Dict]:
+        """Get daily activity goals appropriate for baby's current age."""
+        query = """
+        SELECT * FROM daily_activity_goals
+        WHERE profile_id = %s
+        AND enabled = true
+        AND age_range_min <= %s
+        AND age_range_max > %s
+        ORDER BY priority ASC;
+        """
+
+        try:
+            result = self.db.execute_query(query, (profile_id, age_months, age_months))
+            return result if result else []
+        except Exception as e:
+            logger.error(f"Error getting activity goals for age: {e}")
+            return []
+
+    def get_daily_activity_progress(self, profile_id: str, activity_date: datetime = None) -> List[Dict]:
+        """Get daily progress for all activities."""
+        if activity_date is None:
+            from datetime import date
+            activity_date = date.today()
+        elif isinstance(activity_date, datetime):
+            activity_date = activity_date.date()
+
+        query = """
+        SELECT p.*, g.activity_title, g.activity_key, g.activity_category, g.target_count, g.icon, g.color,
+               g.motivational_messages, g.completion_message, g.duration_minutes, g.benefits
+        FROM daily_activity_progress p
+        JOIN daily_activity_goals g ON p.goal_id = g.id
+        WHERE p.profile_id = %s AND p.activity_date = %s
+        ORDER BY g.priority ASC;
+        """
+
+        try:
+            result = self.db.execute_query(query, (profile_id, activity_date))
+            return result if result else []
+        except Exception as e:
+            logger.error(f"Error getting daily activity progress: {e}")
+            return []
+
+    def increment_activity_progress(self, goal_id: str, profile_id: str, activity_date: datetime = None) -> Dict:
+        """Increment progress for an activity. Creates progress row if doesn't exist."""
+        from datetime import date
+
+        if activity_date is None:
+            activity_date = date.today()
+        elif isinstance(activity_date, datetime):
+            activity_date = activity_date.date()
+
+        # First, get the goal to know the target
+        goal_query = "SELECT target_count FROM daily_activity_goals WHERE id = %s;"
+        goal_result = self.db.execute_query(goal_query, (goal_id,))
+
+        if not goal_result:
+            logger.error(f"Goal not found: {goal_id}")
+            return None
+
+        target_count = goal_result[0]['target_count']
+
+        # Check if progress exists for today
+        check_query = """
+        SELECT id, current_count FROM daily_activity_progress
+        WHERE goal_id = %s AND activity_date = %s;
+        """
+        existing = self.db.execute_query(check_query, (goal_id, activity_date))
+
+        if existing:
+            # Update existing progress
+            progress_id = existing[0]['id']
+            new_count = existing[0]['current_count'] + 1
+            completed = new_count >= target_count
+
+            update_query = """
+            UPDATE daily_activity_progress
+            SET current_count = %s,
+                completed = %s,
+                completed_at = CASE WHEN %s THEN CURRENT_TIMESTAMP ELSE completed_at END,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+            RETURNING *;
+            """
+
+            result = self.db.execute_query(update_query, (new_count, completed, completed, progress_id))
+
+            # Update streak if completed
+            if completed and result:
+                self._update_activity_streak(goal_id, profile_id, activity_date)
+
+            # Get full progress with goal details
+            if result:
+                return self.get_activity_progress_by_id(str(result[0]['id']))
+            return None
+        else:
+            # Create new progress
+            new_count = 1
+            completed = new_count >= target_count
+
+            insert_query = """
+            INSERT INTO daily_activity_progress
+            (goal_id, profile_id, activity_date, current_count, completed, completed_at)
+            VALUES (%s, %s, %s, %s, %s, CASE WHEN %s THEN CURRENT_TIMESTAMP ELSE NULL END)
+            RETURNING id;
+            """
+
+            result = self.db.execute_insert_returning(insert_query,
+                                                     (goal_id, profile_id, activity_date, new_count, completed, completed))
+
+            if completed and result:
+                self._update_activity_streak(goal_id, profile_id, activity_date)
+
+            # Get full progress with goal details
+            return self.get_activity_progress_by_id(str(result)) if result else None
+
+    def _update_activity_streak(self, goal_id: str, profile_id: str, current_date):
+        """Update streak count for an activity."""
+        from datetime import timedelta, date
+
+        if isinstance(current_date, datetime):
+            current_date = current_date.date()
+        elif not isinstance(current_date, date):
+            current_date = date.today()
+
+        yesterday = current_date - timedelta(days=1)
+
+        # Check if activity was completed yesterday
+        query = """
+        SELECT completed, streak_days FROM daily_activity_progress
+        WHERE goal_id = %s AND activity_date = %s;
+        """
+
+        yesterday_result = self.db.execute_query(query, (goal_id, yesterday))
+
+        if yesterday_result and yesterday_result[0]['completed']:
+            # Continue streak
+            yesterday_streak = yesterday_result[0]['streak_days'] or 0
+            new_streak = yesterday_streak + 1
+        else:
+            # Start new streak
+            new_streak = 1
+
+        # Update streak for today
+        update_query = """
+        UPDATE daily_activity_progress
+        SET streak_days = %s
+        WHERE goal_id = %s AND activity_date = %s;
+        """
+
+        try:
+            self.db.execute_query(update_query, (new_streak, goal_id, current_date), fetch=False)
+        except Exception as e:
+            logger.error(f"Error updating streak: {e}")
+
+    def get_activity_progress_by_id(self, progress_id: str) -> Optional[Dict]:
+        """Get activity progress with goal details by ID."""
+        query = """
+        SELECT p.*, g.activity_title, g.activity_key, g.activity_category, g.target_count, g.icon, g.color,
+               g.motivational_messages, g.completion_message, g.duration_minutes, g.benefits
+        FROM daily_activity_progress p
+        JOIN daily_activity_goals g ON p.goal_id = g.id
+        WHERE p.id = %s;
+        """
+
+        try:
+            result = self.db.execute_query(query, (progress_id,))
+            return result[0] if result else None
+        except Exception as e:
+            logger.error(f"Error getting activity progress by ID: {e}")
+            return None
+
     def close(self):
         """Close database connections."""
         self.db.close_pool()
