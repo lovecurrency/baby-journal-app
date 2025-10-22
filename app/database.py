@@ -443,6 +443,106 @@ class DatabaseService:
 
         return stats
 
+    # Reminder operations
+    def create_reminder(self, profile_id: str, reminder_type: str, activity_category: str,
+                       title: str, message: str, enabled: bool = True,
+                       recurrence_hours: int = None, scheduled_time: str = None,
+                       last_activity_hours: int = None) -> str:
+        """Create a new activity reminder."""
+        query = """
+        INSERT INTO activity_reminders
+        (profile_id, reminder_type, activity_category, title, message, enabled,
+         recurrence_hours, scheduled_time, last_activity_hours)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id;
+        """
+        params = (profile_id, reminder_type, activity_category, title, message, enabled,
+                 recurrence_hours, scheduled_time, last_activity_hours)
+
+        try:
+            result = self.db.execute_insert_returning(query, params)
+            return str(result) if result else None
+        except Exception as e:
+            logger.error(f"Error creating reminder: {e}")
+            return None
+
+    def get_reminders(self, profile_id: str, enabled_only: bool = False) -> List[Dict]:
+        """Get all reminders for a profile."""
+        query = "SELECT * FROM activity_reminders WHERE profile_id = %s"
+        params = [profile_id]
+
+        if enabled_only:
+            query += " AND enabled = true"
+
+        query += " ORDER BY created_at DESC;"
+
+        try:
+            result = self.db.execute_query(query, tuple(params))
+            return result if result else []
+        except Exception as e:
+            logger.error(f"Error getting reminders: {e}")
+            return []
+
+    def get_reminder_by_id(self, reminder_id: str) -> Optional[Dict]:
+        """Get a specific reminder by ID."""
+        query = "SELECT * FROM activity_reminders WHERE id = %s;"
+        try:
+            result = self.db.execute_query(query, (reminder_id,))
+            return result[0] if result else None
+        except Exception as e:
+            logger.error(f"Error getting reminder by ID: {e}")
+            return None
+
+    def update_reminder(self, reminder_id: str, **updates) -> bool:
+        """Update a reminder."""
+        if not updates:
+            return False
+
+        # Add updated_at timestamp
+        updates['updated_at'] = datetime.now()
+
+        set_clause = ", ".join([f"{key} = %s" for key in updates.keys()])
+        query = f"""
+        UPDATE activity_reminders
+        SET {set_clause}
+        WHERE id = %s;
+        """
+        params = list(updates.values()) + [reminder_id]
+
+        try:
+            self.db.execute_query(query, tuple(params), fetch=False)
+            return True
+        except Exception as e:
+            logger.error(f"Error updating reminder: {e}")
+            return False
+
+    def delete_reminder(self, reminder_id: str) -> bool:
+        """Delete a reminder."""
+        query = "DELETE FROM activity_reminders WHERE id = %s;"
+        try:
+            self.db.execute_query(query, (reminder_id,), fetch=False)
+            return True
+        except Exception as e:
+            logger.error(f"Error deleting reminder: {e}")
+            return False
+
+    def update_reminder_last_triggered(self, reminder_id: str, triggered_at: datetime = None) -> bool:
+        """Update the last_triggered_at timestamp for a reminder."""
+        if triggered_at is None:
+            triggered_at = datetime.now()
+
+        query = """
+        UPDATE activity_reminders
+        SET last_triggered_at = %s, updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s;
+        """
+        try:
+            self.db.execute_query(query, (triggered_at, reminder_id), fetch=False)
+            return True
+        except Exception as e:
+            logger.error(f"Error updating reminder last_triggered_at: {e}")
+            return False
+
     def close(self):
         """Close database connections."""
         self.db.close_pool()

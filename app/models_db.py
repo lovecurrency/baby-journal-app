@@ -16,6 +16,13 @@ from .models import ActivityCategory, ActivityType  # Import enums from original
 logger = logging.getLogger(__name__)
 
 
+class ReminderType(Enum):
+    """Types of activity reminders."""
+    RECURRING = "recurring"  # e.g., every 3 hours
+    SCHEDULED = "scheduled"  # e.g., daily at 2:00 PM
+    ACTIVITY_BASED = "activity_based"  # e.g., if no feeding in last 4 hours
+
+
 @dataclass
 class BabyActivity:
     """Represents a single baby activity with database persistence."""
@@ -278,6 +285,126 @@ class BabyProfile:
             return db.delete_profile(self.id)
         except Exception as e:
             logger.error(f"Error deleting profile: {e}")
+            return False
+
+
+@dataclass
+class ActivityReminder:
+    """Represents an activity reminder with database persistence."""
+    reminder_type: ReminderType
+    activity_category: ActivityCategory
+    title: str
+    message: str
+    enabled: bool = True
+    recurrence_hours: Optional[int] = None
+    scheduled_time: Optional[str] = None  # Format: "HH:MM"
+    last_activity_hours: Optional[int] = None
+    last_triggered_at: Optional[datetime] = None
+    id: Optional[str] = None
+    profile_id: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    def __post_init__(self):
+        """Generate unique ID if not provided."""
+        if self.id is None:
+            self.id = str(uuid.uuid4())
+
+    def to_dict(self) -> Dict:
+        """Convert reminder to dictionary."""
+        return {
+            'id': self.id,
+            'profile_id': self.profile_id,
+            'reminder_type': self.reminder_type.value,
+            'activity_category': self.activity_category.value,
+            'title': self.title,
+            'message': self.message,
+            'enabled': self.enabled,
+            'recurrence_hours': self.recurrence_hours,
+            'scheduled_time': self.scheduled_time,
+            'last_activity_hours': self.last_activity_hours,
+            'last_triggered_at': self.last_triggered_at.isoformat() if self.last_triggered_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+    @classmethod
+    def from_db_row(cls, row: Dict) -> 'ActivityReminder':
+        """Create reminder from database row."""
+        try:
+            return cls(
+                id=str(row['id']),
+                profile_id=str(row['profile_id']),
+                reminder_type=ReminderType(row['reminder_type']),
+                activity_category=ActivityCategory(row['activity_category']),
+                title=row['title'],
+                message=row['message'],
+                enabled=row['enabled'],
+                recurrence_hours=row['recurrence_hours'],
+                scheduled_time=row['scheduled_time'],
+                last_activity_hours=row['last_activity_hours'],
+                last_triggered_at=row['last_triggered_at'],
+                created_at=row['created_at'],
+                updated_at=row['updated_at']
+            )
+        except Exception as e:
+            logger.error(f"Failed to create reminder from database row: {e}")
+            logger.error(f"Row data: {row}")
+            raise
+
+    def save(self) -> bool:
+        """Save reminder to database."""
+        if not self.profile_id:
+            logger.error("Cannot save reminder without profile_id")
+            return False
+
+        try:
+            db = get_db_service()
+            if self.id and db.get_reminder_by_id(self.id):
+                # Update existing reminder
+                return db.update_reminder(
+                    self.id,
+                    reminder_type=self.reminder_type.value,
+                    activity_category=self.activity_category.value,
+                    title=self.title,
+                    message=self.message,
+                    enabled=self.enabled,
+                    recurrence_hours=self.recurrence_hours,
+                    scheduled_time=self.scheduled_time,
+                    last_activity_hours=self.last_activity_hours,
+                    last_triggered_at=self.last_triggered_at
+                )
+            else:
+                # Create new reminder
+                new_id = db.create_reminder(
+                    profile_id=self.profile_id,
+                    reminder_type=self.reminder_type.value,
+                    activity_category=self.activity_category.value,
+                    title=self.title,
+                    message=self.message,
+                    enabled=self.enabled,
+                    recurrence_hours=self.recurrence_hours,
+                    scheduled_time=self.scheduled_time,
+                    last_activity_hours=self.last_activity_hours
+                )
+                if new_id:
+                    self.id = new_id
+                    return True
+                return False
+        except Exception as e:
+            logger.error(f"Error saving reminder: {e}")
+            return False
+
+    def delete(self) -> bool:
+        """Delete reminder from database."""
+        if not self.id:
+            return False
+
+        try:
+            db = get_db_service()
+            return db.delete_reminder(self.id)
+        except Exception as e:
+            logger.error(f"Error deleting reminder: {e}")
             return False
 
 

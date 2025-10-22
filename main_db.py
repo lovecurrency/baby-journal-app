@@ -19,10 +19,11 @@ import logging
 load_dotenv()
 
 # Database-backed models
-from app.models_db import BabyProfile, ActivityJournal, BabyActivity, ActivityCategory, ActivityType
+from app.models_db import BabyProfile, ActivityJournal, BabyActivity, ActivityCategory, ActivityType, ActivityReminder, ReminderType
 from app.activity_processor import ActivityProcessor
 from app.whatsapp_parser import WhatsAppParser
 from app.insights_generator import InsightsGenerator
+from app.database import get_db_service
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -1629,6 +1630,184 @@ def api_upload_whatsapp():
             'success': False,
             'message': str(e)
         }), 500
+
+
+# Reminder routes
+@app.route('/reminders')
+def reminders():
+    """Reminder management page."""
+    if not journal.profile:
+        journal.load_profile()
+
+    if not journal.profile:
+        flash('Please set up baby profile first.', 'warning')
+        return redirect(url_for('setup'))
+
+    try:
+        db = get_db_service()
+        reminder_rows = db.get_reminders(journal.profile.id)
+        reminders_list = [ActivityReminder.from_db_row(row) for row in reminder_rows]
+
+        # Get categories for dropdown
+        categories = [cat.value for cat in ActivityCategory]
+        reminder_types = [rt.value for rt in ReminderType]
+
+        return render_template('reminders.html',
+                             reminders=reminders_list,
+                             categories=categories,
+                             reminder_types=reminder_types)
+    except Exception as e:
+        logger.error(f"Error loading reminders: {e}")
+        flash(f'Error loading reminders: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
+
+@app.route('/reminders/create', methods=['POST'])
+def create_reminder():
+    """Create a new reminder."""
+    if not journal.profile:
+        journal.load_profile()
+
+    if not journal.profile:
+        return jsonify({'success': False, 'message': 'No profile found'}), 404
+
+    try:
+        data = request.form
+        reminder_type = ReminderType(data.get('reminder_type'))
+        activity_category = ActivityCategory(data.get('activity_category'))
+
+        reminder = ActivityReminder(
+            profile_id=journal.profile.id,
+            reminder_type=reminder_type,
+            activity_category=activity_category,
+            title=data.get('title'),
+            message=data.get('message', ''),
+            enabled=data.get('enabled', 'true') == 'true',
+            recurrence_hours=int(data.get('recurrence_hours')) if data.get('recurrence_hours') else None,
+            scheduled_time=data.get('scheduled_time') if data.get('scheduled_time') else None,
+            last_activity_hours=int(data.get('last_activity_hours')) if data.get('last_activity_hours') else None
+        )
+
+        if reminder.save():
+            flash('Reminder created successfully!', 'success')
+        else:
+            flash('Failed to create reminder.', 'error')
+
+    except Exception as e:
+        logger.error(f"Error creating reminder: {e}")
+        flash(f'Error creating reminder: {str(e)}', 'error')
+
+    return redirect(url_for('reminders'))
+
+
+@app.route('/reminders/<reminder_id>/toggle', methods=['POST'])
+def toggle_reminder(reminder_id):
+    """Toggle reminder enabled/disabled."""
+    try:
+        db = get_db_service()
+        reminder_row = db.get_reminder_by_id(reminder_id)
+
+        if reminder_row:
+            new_enabled = not reminder_row['enabled']
+            db.update_reminder(reminder_id, enabled=new_enabled)
+
+            return jsonify({
+                'success': True,
+                'enabled': new_enabled,
+                'message': f'Reminder {"enabled" if new_enabled else "disabled"}'
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Reminder not found'}), 404
+
+    except Exception as e:
+        logger.error(f"Error toggling reminder: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/reminders/<reminder_id>/delete', methods=['POST', 'DELETE'])
+def delete_reminder(reminder_id):
+    """Delete a reminder."""
+    try:
+        db = get_db_service()
+        if db.delete_reminder(reminder_id):
+            flash('Reminder deleted successfully!', 'success')
+            return jsonify({'success': True, 'message': 'Reminder deleted'})
+        else:
+            flash('Failed to delete reminder.', 'error')
+            return jsonify({'success': False, 'message': 'Failed to delete reminder'}), 500
+
+    except Exception as e:
+        logger.error(f"Error deleting reminder: {e}")
+        flash(f'Error deleting reminder: {str(e)}', 'error')
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/reminders/check')
+def check_reminders():
+    """API endpoint to check for pending reminders and return notifications."""
+    if not journal.profile:
+        journal.load_profile()
+
+    if not journal.profile:
+        return jsonify({'reminders': []})
+
+    try:
+        db = get_db_service()
+        reminder_rows = db.get_reminders(journal.profile.id, enabled_only=True)
+
+        pending_reminders = []
+        now = datetime.now()
+
+        for row in reminder_rows:
+            reminder = ActivityReminder.from_db_row(row)
+            should_notify = False
+
+            if reminder.reminder_type == ReminderType.RECURRING:
+                # Check if enough time has passed since last trigger
+                if reminder.last_triggered_at:
+                    hours_since_last = (now - reminder.last_triggered_at).total_seconds() / 3600
+                    if hours_since_last >= reminder.recurrence_hours:
+                        should_notify = True
+                else:
+                    # Never triggered before
+                    should_notify = True
+
+            elif reminder.reminder_type == ReminderType.SCHEDULED:
+                # Check if current time matches scheduled time
+                scheduled_hour, scheduled_minute = map(int, reminder.scheduled_time.split(':'))
+                if now.hour == scheduled_hour and now.minute == scheduled_minute:
+                    # Only notify once per day
+                    if not reminder.last_triggered_at or reminder.last_triggered_at.date() < now.date():
+                        should_notify = True
+
+            elif reminder.reminder_type == ReminderType.ACTIVITY_BASED:
+                # Check last activity of this category
+                activities = db.get_activities(journal.profile.id, category=reminder.activity_category.value, limit=1)
+                if activities:
+                    last_activity_time = activities[0]['timestamp']
+                    hours_since_activity = (now - last_activity_time).total_seconds() / 3600
+                    if hours_since_activity >= reminder.last_activity_hours:
+                        should_notify = True
+                else:
+                    # No activities of this type yet
+                    should_notify = True
+
+            if should_notify:
+                pending_reminders.append({
+                    'id': reminder.id,
+                    'title': reminder.title,
+                    'message': reminder.message,
+                    'category': reminder.activity_category.value
+                })
+
+                # Update last_triggered_at
+                db.update_reminder_last_triggered(reminder.id, now)
+
+        return jsonify({'reminders': pending_reminders})
+
+    except Exception as e:
+        logger.error(f"Error checking reminders: {e}")
+        return jsonify({'reminders': [], 'error': str(e)})
 
 
 if __name__ == '__main__':
